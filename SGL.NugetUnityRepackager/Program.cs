@@ -16,16 +16,17 @@ namespace SGL.NugetUnityRepackager {
 			var packageSources = new PackageSourceProvider(settings).LoadPackageSources().ToDictionary(ps => ps.Name);
 			var packageSourcesMapping = PackageSourceMapping.GetPackageSourceMapping(settings);
 
-			var packageName = "SGL.Utilities.Backend";
+			var packageName = "SGL.Community.Client";
 			var sourceNames = packageSourcesMapping.GetConfiguredPackageSources(packageName);
 			var repository = Repository.Factory.GetCoreV3(packageSources[sourceNames.First()]);
 			FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>(ct);
 
 			IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(packageName, cache, logger, ct);
-			var versionRange = VersionRange.Parse("0.6.0", true);
+			//var versionRange = VersionRange.Parse("0.6.0", true);
+			var versionRange = new VersionRange(VersionRange.All, new FloatRange(NuGetVersionFloatBehavior.AbsoluteLatest));
 			var version = versions.FindBestMatch(versionRange, v => v);
 			var pkgWithVersion = $"{packageName} {version}";
-			var downloader = await resource.GetPackageDownloaderAsync(new PackageIdentity(packageName, version), cache, logger, ct);
+			using var downloader = await resource.GetPackageDownloaderAsync(new PackageIdentity(packageName, version), cache, logger, ct);
 			await downloader.CopyNupkgFileToAsync($"{packageName}_{version}.nupkg", ct);
 			await Console.Out.WriteLineAsync($"{pkgWithVersion} content:");
 			foreach (var file in await downloader.CoreReader.GetFilesAsync(ct)) {
@@ -48,6 +49,17 @@ namespace SGL.NugetUnityRepackager {
 				}
 			}
 
+			await Console.Out.WriteLineAsync($"{pkgWithVersion} libs content:");
+			//var libItems = await downloader.ContentReader.GetReferenceItemsAsync(ct);
+			var libItems = await downloader.ContentReader.GetLibItemsAsync(ct);
+			foreach (var depGrp in libItems) {
+				await Console.Out.WriteAsync("\t");
+				await Console.Out.WriteLineAsync(depGrp.TargetFramework.ToString());
+				foreach (var item in depGrp.Items) {
+					await Console.Out.WriteAsync("\t\t");
+					await Console.Out.WriteLineAsync(item);
+				}
+			}
 		}
 	}
 }
