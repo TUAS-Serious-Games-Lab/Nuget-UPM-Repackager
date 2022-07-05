@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SGL.NugetUnityRepackager": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

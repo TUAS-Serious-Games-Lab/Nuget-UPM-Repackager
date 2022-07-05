@@ -1,0 +1,97 @@
+image: mcr.microsoft.com/dotnet/sdk:6.0
+
+stages:
+  - build
+#  - test
+  - package
+
+variables:
+  NUGET_PACKAGES_DIRECTORY: '.nuget'
+
+cache:
+  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+  paths:
+    - '*/obj/project.assets.json'
+    - '*/obj/*.csproj.nuget.*'
+    - '$NUGET_PACKAGES_DIRECTORY'
+
+before_script:
+  - 'dotnet nuget update source SGL --username ${SGL_PKG_USER} --password ${SGL_PKG_TOKEN} --store-password-in-clear-text'
+  - 'dotnet restore --packages $NUGET_PACKAGES_DIRECTORY NugetUnityRepackager.sln'
+
+after_script:
+  - 'dotnet nuget update source SGL --username dummy --password dummy --store-password-in-clear-text'
+
+.build:
+  needs: []
+  stage: build
+  script:
+    - 'dotnet build --configuration ${CONFIG} --no-restore NugetUnityRepackager.sln'
+
+build-debug:
+  extends: .build
+  variables:
+    CONFIG: Debug
+  artifacts:
+    expire_in: 2 days
+    paths:
+      - SGL.NugetUnityRepackager.*/bin/Debug/*/SGL.NugetUnityRepackager.*.xml
+      - SGL.NugetUnityRepackager.*/bin/Debug/*/SGL.NugetUnityRepackager.*.dll
+      - SGL.NugetUnityRepackager.*/bin/Debug/*/SGL.NugetUnityRepackager.*.exe
+
+build-release:
+  extends: .build
+  variables:
+    CONFIG: Release
+
+#test:
+#  stage: test
+#  needs: []
+#  script:
+#    - 'rm -f */TestResults/*/coverage.cobertura.xml'
+#    - 'dotnet test --no-restore --configuration Debug --collect:"XPlat Code Coverage" --test-adapter-path:. --logger:"junit;LogFilePath=../TestResults/{assembly}.xml;MethodFormat=Class;FailureBodyFormat=Verbose" NugetUnityRepackager.sln'
+#  artifacts:
+#    expire_in: 14 days
+#    when: always
+#    paths:
+#     - ./TestResults/*.xml
+#     - '*/TestResults/*/coverage.cobertura.xml'
+#    reports:
+#      junit:
+#       - ./TestResults/*.xml
+#      coverage_report:
+#        coverage_format: cobertura
+#        path: '*/TestResults/*/coverage.cobertura.xml'
+
+#docs:
+#  stage: build
+#  needs:
+#  - build-debug
+#  image: ${CI_REGISTRY}/serious-games-lab/docfx-ci-build-image
+#  before_script: []
+#  script:
+#    - docfx DocFx/docfx.json
+#  artifacts:
+#    name: "SGL.NugetUnityRepackager.Docs"
+#    expire_in: 14 days
+#    paths:
+#      - docfx_output
+
+#pages:
+#  stage: deploy
+#  needs:
+#  - docs
+#  before_script: []
+#  script:
+#    - rm -rf public
+#    - mv docfx_output public
+#  artifacts:
+#    expire_in: 1 day
+#    paths:
+#      - public
+#  rules:
+#    - if: '$CI_COMMIT_BRANCH == "main"'
+
+include:
+- template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
+- local: '/package.gitlab-ci.yml'

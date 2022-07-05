@@ -1,0 +1,74 @@
+.package-backend-docker-images:
+  stage: package
+  needs:
+  - job: build-debug
+    artifacts: false
+  - job: build-release
+    artifacts: false
+#  - job: test
+#    artifacts: false
+  variables:
+    REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: ${CI_PROJECT_DIR}/../docker_ci_cache
+    # Max size for docker layer cache in MiB. If it goes over this, empty the cache to avoid wasting disk space and pessimising build time due to long cache extraction.
+    CACHE_CLEANUP_THRESHOLD: 512
+  services:
+  - registry:2
+  before_script:
+  - mv ${CI_PROJECT_DIR}/docker_ci_cache ${CI_PROJECT_DIR}/../docker_ci_cache || mkdir -p ${CI_PROJECT_DIR}/../docker_ci_cache
+  - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+  after_script:
+  - mv ${CI_PROJECT_DIR}/../docker_ci_cache ${CI_PROJECT_DIR}/docker_ci_cache
+  - CURRENT_CACHE_SIZE=$(du -ms ${CI_PROJECT_DIR}/docker_ci_cache | cut -f1)
+  - if [[ ${CURRENT_CACHE_SIZE} -ge ${CACHE_CLEANUP_THRESHOLD} ]]; then echo "Clearing docker layer cache because it has reached ${CURRENT_CACHE_SIZE} MiB."; rm -rf "${CI_PROJECT_DIR}/docker_ci_cache"; mkdir -p "${CI_PROJECT_DIR}/docker_ci_cache"; else echo "Current docker layer cache size is ${CURRENT_CACHE_SIZE} MiB."; fi
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  cache:
+    paths:
+    - 'docker_ci_cache'
+  script:
+  - echo IMAGE_CONTEXT='$'${IMAGE_NAME}_PACKAGE_IMAGE_CONTEXT
+  - echo IMAGE_DIR='$'${IMAGE_NAME}_PACKAGE_IMAGE_DIR
+  - echo IMAGE_URL='$'${IMAGE_NAME}_PACKAGE_IMAGE
+  - eval IMAGE_CONTEXT='$'${IMAGE_NAME}_PACKAGE_IMAGE_CONTEXT
+  - IMAGE_CONTEXT=${IMAGE_CONTEXT:-${CI_PROJECT_DIR}}
+  - eval IMAGE_DIR='$'${IMAGE_NAME}_PACKAGE_IMAGE_DIR
+  - eval IMAGE_URL='$'${IMAGE_NAME}_PACKAGE_IMAGE
+  - echo IMAGE_CONTEXT=${IMAGE_CONTEXT}
+  - echo IMAGE_DIR=${IMAGE_DIR}
+  - echo IMAGE_URL=${IMAGE_URL}
+  - BUILD_OPTS="--build-arg SGL_PKG_USER --build-arg SGL_PKG_TOKEN --cleanup --cache=true --insecure-registry=registry:5000 --cache-repo=registry:5000/cache --context ${IMAGE_CONTEXT} --dockerfile ${IMAGE_DIR}/Dockerfile --target final --ignore-path docker_ci_cache"
+  - /kaniko/executor $BUILD_OPTS --destination "${IMAGE_URL}:${PACKAGE_IMAGE_TAG_1}" --destination "${IMAGE_URL}:${PACKAGE_IMAGE_TAG_2}" --destination "${IMAGE_URL}:${CI_COMMIT_SHORT_SHA}"
+
+.docker_images_mapping:
+  variables:
+    Repackager_PACKAGE_IMAGE_DIR: "SGL.NugetUnityRepackager"
+    Repackager_PACKAGE_IMAGE: "${CI_REGISTRY_IMAGE}/nuget-unity-repackager"
+    Repackager_PACKAGE_IMAGE_CONTEXT: "${CI_PROJECT_DIR}"
+
+.pkg-docker:
+  extends: .package-backend-docker-images
+  parallel:
+    matrix:
+    - IMAGE_NAME: Repackager
+
+pkg-docker-main:
+  extends:
+  - .pkg-docker
+  - .docker_images_mapping
+  variables:
+    SERVICE_BASE_IMAGE_OVERRIDE: "${CI_REGISTRY_IMAGE}/base:${CI_COMMIT_SHORT_SHA}"
+    PACKAGE_IMAGE_TAG_1: ${CI_COMMIT_REF_SLUG}
+    PACKAGE_IMAGE_TAG_2: latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: $TEST_DOCKER_BUILD
+
+pkg-docker-tags:
+  extends: .pkg-docker
+  variables:
+    SERVICE_BASE_IMAGE_OVERRIDE: "${CI_REGISTRY_IMAGE}/base:${CI_COMMIT_TAG}"
+    PACKAGE_IMAGE_TAG_1: ${CI_COMMIT_TAG}
+    PACKAGE_IMAGE_TAG_2: prod
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^\d+(\.\d+)*$/'
