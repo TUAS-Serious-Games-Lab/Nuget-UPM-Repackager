@@ -1,7 +1,8 @@
 {
   "profiles": {
     "SGL.NugetUnityRepackager": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-vvv -f netstandard2.1 SGL.Community.Client@0.0.4 SGL.Analytics.Client@0.0.1"
     },
     "Docker": {
       "commandName": "Docker"
