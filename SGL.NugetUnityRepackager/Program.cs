@@ -1,5 +1,7 @@
-﻿using NuGet.Common;
+﻿using Microsoft.Extensions.Logging;
+using NuGet.Common;
 using NuGet.Configuration;
+using NuGet.Frameworks;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -8,57 +10,19 @@ using NuGet.Versioning;
 namespace SGL.NugetUnityRepackager {
 	internal class Program {
 		static async Task Main(string[] args) {
-			ILogger logger = NullLogger.Instance;
-			CancellationToken ct = CancellationToken.None;
+			var loggerFactory = LoggerFactory.Create(config => {
+				config.AddSimpleConsole();
+				config.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+			});
+			using var treeResolver = new NugetTreeResolver(loggerFactory, Directory.GetCurrentDirectory());
+			var cancellationTokenSource = new CancellationTokenSource();
+			var ct = cancellationTokenSource.Token;
+			Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
+			var packages = await treeResolver.GetAllDependenciesAsync(NuGetFramework.ParseFolder("netstandard2.1"), ct,
+				new PackageIdentity("SGL.Community.Client", NuGetVersion.Parse("0.0.4")));
 
-			SourceCacheContext cache = new SourceCacheContext();
-			var settings = Settings.LoadDefaultSettings(Directory.GetCurrentDirectory());
-			var packageSources = new PackageSourceProvider(settings).LoadPackageSources().ToDictionary(ps => ps.Name);
-			var packageSourcesMapping = PackageSourceMapping.GetPackageSourceMapping(settings);
-
-			var packageName = "SGL.Community.Client";
-			var sourceNames = packageSourcesMapping.GetConfiguredPackageSources(packageName);
-			var repository = Repository.Factory.GetCoreV3(packageSources[sourceNames.First()]);
-			FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>(ct);
-
-			IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync(packageName, cache, logger, ct);
-			//var versionRange = VersionRange.Parse("0.6.0", true);
-			var versionRange = new VersionRange(VersionRange.All, new FloatRange(NuGetVersionFloatBehavior.AbsoluteLatest));
-			var version = versions.FindBestMatch(versionRange, v => v);
-			var pkgWithVersion = $"{packageName} {version}";
-			using var downloader = await resource.GetPackageDownloaderAsync(new PackageIdentity(packageName, version), cache, logger, ct);
-			await downloader.CopyNupkgFileToAsync($"{packageName}_{version}.nupkg", ct);
-			await Console.Out.WriteLineAsync($"{pkgWithVersion} content:");
-			foreach (var file in await downloader.CoreReader.GetFilesAsync(ct)) {
-				await Console.Out.WriteAsync("\t");
-				await Console.Out.WriteLineAsync(file);
-			}
-			await Console.Out.WriteLineAsync($"{pkgWithVersion} types: {string.Join(" ", (await downloader.CoreReader.GetPackageTypesAsync(ct)).Select(t => t.Name))}");
-			await Console.Out.WriteLineAsync($"{pkgWithVersion} dependencies:");
-			foreach (var dependencyGroup in await downloader.ContentReader.GetPackageDependenciesAsync(ct)) {
-				await Console.Out.WriteAsync("\t");
-				await Console.Out.WriteLineAsync(dependencyGroup.TargetFramework.ToString());
-				foreach (var pkg in dependencyGroup.Packages) {
-					await Console.Out.WriteAsync("\t\t");
-					await Console.Out.WriteAsync(pkg.Id);
-					await Console.Out.WriteAsync(" ");
-					await Console.Out.WriteAsync(pkg.VersionRange.ToString());
-					if (pkg.Include.Any()) await Console.Out.WriteAsync($" Incl: {string.Join(", ", pkg.Include)}");
-					if (pkg.Exclude.Any()) await Console.Out.WriteAsync($" Excl: {string.Join(", ", pkg.Exclude)}");
-					await Console.Out.WriteLineAsync();
-				}
-			}
-
-			await Console.Out.WriteLineAsync($"{pkgWithVersion} libs content:");
-			//var libItems = await downloader.ContentReader.GetReferenceItemsAsync(ct);
-			var libItems = await downloader.ContentReader.GetLibItemsAsync(ct);
-			foreach (var depGrp in libItems) {
-				await Console.Out.WriteAsync("\t");
-				await Console.Out.WriteLineAsync(depGrp.TargetFramework.ToString());
-				foreach (var item in depGrp.Items) {
-					await Console.Out.WriteAsync("\t\t");
-					await Console.Out.WriteLineAsync(item);
-				}
+			foreach (var (identity, package) in packages) {
+				await Console.Out.WriteLineAsync($"{identity} => {string.Join(", ", package.Dependencies)}");
 			}
 		}
 	}
