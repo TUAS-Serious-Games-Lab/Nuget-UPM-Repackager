@@ -10,6 +10,6 @@ namespace SGL.NugetUnityRepackager {
 		public PackageIdentity Identifier { get; }
 		public IReadOnlyList<PackageIdentity> Dependencies { get; }
 		public PackageMetadata Metadata { get; }
-		public IReadOnlyDictionary<string, Func<Stream>> Contents { get; }
+		public IReadOnlyDictionary<string, Func<Task<Stream>>> Contents { get; }
 	}
 }
