@@ -26,6 +26,12 @@ namespace SGL.NugetUnityRepackager {
 			[Option('f', "framework", HelpText = "The target framework for which to extract the matching assemblies.")]
 			public ParsedFramework Framework { get; set; } = new ParsedFramework("netstandard2.1");
 
+			[Option('u', "unity", HelpText = "Unity version to specify in package manifest.")]
+			public string UnityVersion { get; set; } = "2021.3";
+
+			[Option('r', "unity-release", HelpText = "Unity release within the version, to specify in package manifest.")]
+			public string? UnityRelease { get; set; } = null;
+
 			[Usage]
 			public static IEnumerable<Example> Examples => new List<Example> {
 				new Example("Convert version 1.2.3 of Some.Example.Package and all of its dependencies, and store the converted packages in output.",
@@ -92,7 +98,7 @@ namespace SGL.NugetUnityRepackager {
 			Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
 			var packages = await treeResolver.GetAllDependenciesAsync(NuGetFramework.ParseFolder("netstandard2.1"), ct, opts.PrimaryPackages.ToArray());
 
-			var converter = new PackageConverter(null, null);
+			var converter = new PackageConverter(opts.UnityVersion, opts.UnityRelease);
 			var convertedPackages = converter.ConvertPackages(packages, opts.PrimaryPackages.Cast<PackageIdentity>().ToHashSet());
 
 			Directory.CreateDirectory(opts.OutputDirectory);
