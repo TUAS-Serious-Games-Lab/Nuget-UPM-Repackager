@@ -141,6 +141,7 @@ namespace SGL.NugetUnityRepackager {
 			Readme = nuspecReader.GetReadme(),
 			ReleaseNotes = nuspecReader.GetReleaseNotes(),
 			RequireLicenseAcceptance = nuspecReader.GetRequireLicenseAcceptance(),
+			RepositoryMetadata = nuspecReader.GetRepositoryMetadata(),
 			MetadataDictionary = nuspecReader.GetMetadata().ToDictionary(md => md.Key, md => md.Value)
 		};
 

@@ -45,7 +45,9 @@ namespace SGL.NugetUnityRepackager {
 					Samples = null,
 					LicenseUrl = String.IsNullOrEmpty(inPkg.Metadata.LicenseUrl) ? null : inPkg.Metadata.LicenseUrl,
 					License = inPkg.Metadata.LicenseMetadata != null ? $"{inPkg.Metadata.LicenseMetadata.License} {inPkg.Metadata.LicenseMetadata.Version}" : null,
-					DocumentationUrl = String.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl,
+					DocumentationUrl = inPkg.Metadata.RepositoryMetadata == null || string.IsNullOrEmpty(inPkg.Metadata.RepositoryMetadata.Url) ?
+						(String.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl) :
+						inPkg.Metadata.RepositoryMetadata.Url,
 					Author = String.IsNullOrEmpty(inPkg.Metadata.Authors) ? null : new PackageAuthor {
 						Name = inPkg.Metadata.Authors,
 						Url = String.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl,

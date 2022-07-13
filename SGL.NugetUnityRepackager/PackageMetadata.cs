@@ -1,4 +1,5 @@
 ﻿using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace SGL.NugetUnityRepackager {
 		public string LicenseUrl { get; init; }
 		public LicenseMetadata LicenseMetadata { get; init; }
 		public bool RequireLicenseAcceptance { get; init; }
+		public RepositoryMetadata RepositoryMetadata { get; init; }
 		public IReadOnlyDictionary<string, string> MetadataDictionary { get; init; }
 	}
 }
