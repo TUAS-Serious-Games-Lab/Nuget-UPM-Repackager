@@ -20,7 +20,7 @@ namespace SGL.NugetUnityRepackager {
 			[Option('o', "output-dir", HelpText = "The directory to which the repackaged packages shall be written.")]
 			public string OutputDirectory { get; set; } = "output";
 
-			[Value(0, MetaName = "PRIMARY_PACKAGES", Min = 1)]
+			[Value(0, MetaName = "PRIMARY_PACKAGES", MetaValue = "PKG_NAME_AT_VERSION", Min = 1)]
 			public IEnumerable<ParsedPackageIdentity> PrimaryPackages { get; set; } = Enumerable.Empty<ParsedPackageIdentity>();
 
 			[Option('f', "framework", HelpText = "The target framework for which to extract the matching assemblies.")]
@@ -34,7 +34,7 @@ namespace SGL.NugetUnityRepackager {
 
 			[Usage]
 			public static IEnumerable<Example> Examples => new List<Example> {
-				new Example("Convert version 1.2.3 of Some.Example.Package and all of its dependencies, and store the converted packages in output.",
+				new Example("Convert version 1.2.3 of Some.Example.Package and all of its dependencies, and store the converted packages in output/.",
 					new UnParserSettings(){ PreferShortName = true},
 					new Options() {
 						OutputDirectory = "output",
@@ -111,6 +111,7 @@ namespace SGL.NugetUnityRepackager {
 		}
 		static async Task DisplayHelp(ParserResult<Options> result, IEnumerable<Error> errs) {
 			await Console.Out.WriteLineAsync(HelpText.AutoBuild(result, h => {
+				h.AddNewLineBetweenHelpSections = true;
 				h.AdditionalNewLineAfterOption = false;
 				h.Heading = $"SGL NugetUnityRepackager {Assembly.GetExecutingAssembly().GetName().Version}";
 				h.MaximumDisplayWidth = 170;
