@@ -41,7 +41,7 @@ namespace SGL.NugetUnityRepackager {
 					DisplayName = String.IsNullOrEmpty(inPkg.Metadata.Title) ? null : inPkg.Metadata.Title,
 					Description = String.IsNullOrEmpty(inPkg.Metadata.Description) ? null : inPkg.Metadata.Description,
 					Keywords = String.IsNullOrEmpty(inPkg.Metadata.Tags) ? null : inPkg.Metadata.Tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries),
-					ChangelogUrl = null,
+					ChangelogUrl = String.IsNullOrEmpty(inPkg.Metadata.ReleaseNotes) ? null : inPkg.Metadata.ReleaseNotes,
 					Samples = null,
 					LicenseUrl = String.IsNullOrEmpty(inPkg.Metadata.LicenseUrl) ? null : inPkg.Metadata.LicenseUrl,
 					License = inPkg.Metadata.LicenseMetadata != null ? $"{inPkg.Metadata.LicenseMetadata.License} {inPkg.Metadata.LicenseMetadata.Version}" : null,
