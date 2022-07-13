@@ -97,7 +97,7 @@ namespace SGL.NugetUnityRepackager {
 
 			foreach (var (identity, package) in packages) {
 				await Console.Out.WriteLineAsync($"{identity} => {string.Join(", ", package.Dependencies)}");
-				await upmWriter.WriteUnityPackageAsync(package);
+				await upmWriter.WriteUnityPackageAsync(package, ct);
 			}
 		}
 		static async Task DisplayHelp(ParserResult<Options> result, IEnumerable<Error> errs) {

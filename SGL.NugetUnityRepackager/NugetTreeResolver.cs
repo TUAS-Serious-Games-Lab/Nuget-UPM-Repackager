@@ -111,7 +111,7 @@ namespace SGL.NugetUnityRepackager {
 			if (frameworkLibItems == null) {
 				logger.LogWarning("No lib items for {framework} in package {pkg}.", framework, pkgId);
 			}
-			var contents = frameworkLibItems?.Items?.ToDictionary(item => item, item => GetItemReader(item, pkgReader, ct)) ?? new Dictionary<string, Func<Task<Stream>>>();
+			var contents = frameworkLibItems?.Items?.ToDictionary(item => item, item => GetItemReader(item, pkgReader)) ?? new Dictionary<string, Func<CancellationToken, Task<Stream>>>();
 			var allDependencies = (await pkgReader.GetPackageDependenciesAsync(ct)).ToList();
 			var frameworkDependencies = allDependencies.GetNearest(framework);
 			if (frameworkDependencies == null) {
@@ -144,7 +144,7 @@ namespace SGL.NugetUnityRepackager {
 			MetadataDictionary = nuspecReader.GetMetadata().ToDictionary(md => md.Key, md => md.Value)
 		};
 
-		private Func<Task<Stream>> GetItemReader(string item, PackageReaderBase pkgReader, CancellationToken ct) => () => pkgReader.GetStreamAsync(item, ct);
+		private Func<CancellationToken, Task<Stream>> GetItemReader(string item, PackageReaderBase pkgReader) => (CancellationToken ct) => pkgReader.GetStreamAsync(item, ct);
 
 		public class Gatherer { }
 		public class Resolver { }
