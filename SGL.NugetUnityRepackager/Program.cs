@@ -92,10 +92,13 @@ namespace SGL.NugetUnityRepackager {
 			Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
 			var packages = await treeResolver.GetAllDependenciesAsync(NuGetFramework.ParseFolder("netstandard2.1"), ct, opts.PrimaryPackages.ToArray());
 
+			var converter = new PackageConverter(null, null);
+			var convertedPackages = converter.ConvertPackages(packages, opts.PrimaryPackages.Cast<PackageIdentity>().ToHashSet());
+
 			Directory.CreateDirectory(opts.OutputDirectory);
 			var upmWriter = new UnityPackageWriter(opts.OutputDirectory);
 
-			foreach (var (identity, package) in packages) {
+			foreach (var (identity, package) in convertedPackages) {
 				await Console.Out.WriteLineAsync($"{identity} => {string.Join(", ", package.Dependencies)}");
 				await upmWriter.WriteUnityPackageAsync(package, ct);
 			}
