@@ -133,8 +133,8 @@ namespace SGL.NugetUnityRepackager {
 				}
 			}
 
-			var converter = new PackageConverter(opts.UnityVersion, opts.UnityRelease, Path.GetFullPath(opts.MainDirectory));
-			var convertedPackages = converter.ConvertPackages(packages, opts.PrimaryPackages.Cast<PackageIdentity>().ToHashSet());
+			var converter = new PackageConverter(loggerFactory, opts.UnityVersion, opts.UnityRelease, Path.GetFullPath(opts.MainDirectory), ct);
+			var convertedPackages = await converter.ConvertPackagesAsync(packages, opts.PrimaryPackages.Cast<PackageIdentity>().ToHashSet());
 
 			await Console.Out.WriteLineAsync();
 			await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));

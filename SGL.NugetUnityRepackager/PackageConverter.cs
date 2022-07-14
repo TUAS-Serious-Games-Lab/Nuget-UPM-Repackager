@@ -1,4 +1,6 @@
-﻿using NuGet.Packaging.Core;
+﻿using Microsoft.Extensions.Logging;
+using NuGet.Common;
+using NuGet.Packaging.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,36 +11,69 @@ using System.Threading.Tasks;
 
 namespace SGL.NugetUnityRepackager {
 	public class PackageConverter {
+		private readonly ILoggerFactory loggerFactory;
 		private string? unity;
 		private string? unityRelease;
 		private string mainDirectory;
+		private AsyncLazy<Overrides> overrides;
 
-		public PackageConverter(string? unity, string? unityRelease, string mainDirectory) {
+		public PackageConverter(ILoggerFactory loggerFactory, string? unity, string? unityRelease, string mainDirectory, CancellationToken ct) {
+			this.loggerFactory = loggerFactory;
 			this.unity = unity;
 			this.unityRelease = unityRelease;
 			this.mainDirectory = mainDirectory;
+			overrides = new AsyncLazy<Overrides>(() => PrepareOverridesAsync(ct));
 		}
 
-		public IReadOnlyDictionary<PackageIdentity, Package> ConvertPackages(IReadOnlyDictionary<PackageIdentity, Package> input, ISet<PackageIdentity> primaryPackages) {
+		private async Task<Overrides> PrepareOverridesAsync(CancellationToken ct) {
+			var overridesFile = Path.Combine(mainDirectory, "overrides.json");
+			var logger = loggerFactory.CreateLogger<Overrides>();
+			OverrideSettings settings;
+			if (File.Exists(overridesFile)) {
+				try {
+					await using var settingsStream = new FileStream(overridesFile, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize: 4096, useAsync: true);
+					var options = new JsonSerializerOptions(JsonSerializerDefaults.General) {
+						ReadCommentHandling = JsonCommentHandling.Skip
+					};
+					var readSettings = await JsonSerializer.DeserializeAsync<OverrideSettings>(settingsStream, options, ct);
+					if (readSettings == null) {
+						throw new ArgumentNullException("Couldn't read valid override settings from existing overrides.json.");
+					}
+					settings = readSettings;
+				}
+				catch (Exception ex) {
+					logger.LogError(ex, "Failed to load overrides.json");
+					throw;
+				}
+			}
+			else {
+				settings = new OverrideSettings();
+			}
+			return new Overrides(logger, settings);
+		}
+
+		public async Task<IReadOnlyDictionary<PackageIdentity, Package>> ConvertPackagesAsync(IReadOnlyDictionary<PackageIdentity, Package> input, ISet<PackageIdentity> primaryPackages) {
+			var overrides = await this.overrides;
 			var result = new Dictionary<PackageIdentity, Package>();
 			foreach (var (inPkgIdent, inPkg) in input) {
-				var outIdent = new PackageIdentity(ConvertName(inPkgIdent.Id), inPkgIdent.Version);
-				var outPkg = new Package(outIdent, inPkg.Dependencies.Select(inDep => new PackageIdentity(ConvertName(inDep.Id), inDep.Version)).ToList(), inPkg.Metadata,
-					inPkg.Contents.Prepend(GenerateUpmManifest(inPkg, primaryPackages.Contains(inPkgIdent))).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+				var outIdent = new PackageIdentity(ConvertName(overrides, inPkgIdent.Id), inPkgIdent.Version);
+				var outPkg = new Package(outIdent, inPkg.Dependencies.Select(inDep => new PackageIdentity(ConvertName(overrides, inDep.Id), inDep.Version)).ToList(), inPkg.Metadata,
+					inPkg.Contents.Prepend(await GenerateUpmManifestAsync(inPkg, primaryPackages.Contains(inPkgIdent))).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 				result.Add(outIdent, outPkg);
 			}
 			return result;
 		}
 
-		private KeyValuePair<string, Func<CancellationToken, Task<Stream>>> GenerateUpmManifest(Package inPkg, bool primaryPackage) {
+		private async Task<KeyValuePair<string, Func<CancellationToken, Task<Stream>>>> GenerateUpmManifestAsync(Package inPkg, bool primaryPackage) {
 			Func<CancellationToken, Task<Stream>> getter = async (CancellationToken ct) => {
 				JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web) {
 					WriteIndented = true,
 					DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
 				};
 				var stream = new MemoryStream();
+				var overrides = await this.overrides;
 				var manifest = new PackageManifest {
-					Name = ConvertName(inPkg.Identifier.Id),
+					Name = ConvertName(overrides, inPkg.Identifier.Id),
 					Version = inPkg.Identifier.Version.ToString(),
 					DisplayName = String.IsNullOrEmpty(inPkg.Metadata.Title) ? null : inPkg.Metadata.Title,
 					Description = String.IsNullOrEmpty(inPkg.Metadata.Description) ? null : inPkg.Metadata.Description,
@@ -55,7 +90,7 @@ namespace SGL.NugetUnityRepackager {
 						Url = String.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl,
 						Email = null
 					},
-					Dependencies = inPkg.Dependencies.ToDictionary(inPkg => ConvertName(inPkg.Id), inPkg => inPkg.Version.ToString()),
+					Dependencies = inPkg.Dependencies.ToDictionary(inPkg => ConvertName(overrides, inPkg.Id), inPkg => inPkg.Version.ToString()),
 					HideInEditor = !primaryPackage,
 					Unity = unity,
 					UnityRelease = unityRelease
@@ -67,8 +102,9 @@ namespace SGL.NugetUnityRepackager {
 			return new("package.json", getter);
 		}
 
-		private string ConvertName(string origName) {
-			return origName.ToLower();
+		private static string ConvertName(Overrides overrides, string origName) {
+			var mappedName = overrides.MapPackageName(origName);
+			return mappedName.ToLower();
 		}
 	}
 }

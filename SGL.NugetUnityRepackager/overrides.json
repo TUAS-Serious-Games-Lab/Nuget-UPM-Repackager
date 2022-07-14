@@ -1,0 +1,16 @@
+{
+  "NamePrefixMapping": {
+    "SGL.": "de.hochschule-trier.sgl.",
+    "": "org.nuget."
+  },
+  "PathMapping": [
+    {
+      "MatchPrefix": "lib/netstandard2.1/",
+      "ReplacePrefix": "Runtime/"
+    },
+    {
+      "MatchPrefix": "lib/netstandard2.0/",
+      "ReplacePrefix": "Runtime/"
+    }
+  ]
+}
