@@ -162,6 +162,7 @@ namespace SGL.NugetUnityRepackager {
 				var dependencyGroup = dependencyInfoResource.DependencyGroups.GetNearest(framework);
 				if (dependencyGroup == null) {
 					logger.LogWarning("Package {pkg} has no DependencyGroup for framework {framework} in {source}.", package, framework, sourceRepo.PackageSource.Name);
+					gatheredPackages.Add(package, new SourcePackageDependencyInfo(package.Id, package.Version, Enumerable.Empty<PackageDependency>(), true, sourceRepo));
 					continue;
 				}
 				logger.LogDebug("Selecting {framework} for {pkg}.", dependencyGroup.TargetFramework, package);
