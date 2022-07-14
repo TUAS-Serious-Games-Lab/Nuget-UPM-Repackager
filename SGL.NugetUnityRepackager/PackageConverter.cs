@@ -58,7 +58,7 @@ namespace SGL.NugetUnityRepackager {
 			foreach (var (inPkgIdent, inPkg) in input) {
 				var outIdent = new PackageIdentity(ConvertName(overrides, inPkgIdent.Id), inPkgIdent.Version);
 				var outPkg = new Package(outIdent, inPkg.Dependencies.Select(inDep => new PackageIdentity(ConvertName(overrides, inDep.Id), inDep.Version)).ToList(), inPkg.Metadata,
-					inPkg.Contents.Prepend(await GenerateUpmManifestAsync(inPkg, primaryPackages.Contains(inPkgIdent))).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+					inPkg.Contents.Prepend(await GenerateUpmManifestAsync(inPkg, primaryPackages.Contains(inPkgIdent))).ToDictionary(kvp => overrides.MapPath(kvp.Key), kvp => kvp.Value));
 				result.Add(outIdent, outPkg);
 			}
 			return result;

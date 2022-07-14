@@ -11,6 +11,16 @@
     {
       "MatchPrefix": "lib/netstandard2.0/",
       "ReplacePrefix": "Runtime/"
+    },
+    {
+      "MatchPrefix": "lib/netstandard2.1/",
+      "MatchSuffix": ".xml",
+      "ReplacePrefix": "Documentation~/"
+    },
+    {
+      "MatchPrefix": "lib/netstandard2.0/",
+      "MatchSuffix": ".xml",
+      "ReplacePrefix": "Documentation~/"
     }
   ]
 }
