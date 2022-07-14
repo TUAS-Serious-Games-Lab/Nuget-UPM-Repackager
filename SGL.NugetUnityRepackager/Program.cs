@@ -99,7 +99,12 @@ namespace SGL.NugetUnityRepackager {
 			var cancellationTokenSource = new CancellationTokenSource();
 			var ct = cancellationTokenSource.Token;
 			Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
+			await Console.Out.WriteLineAsync("Gathering and resolving package dependencies:");
+			await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
 			var packages = await treeResolver.GetAllDependenciesAsync(NuGetFramework.ParseFolder("netstandard2.1"), ct, opts.PrimaryPackages.ToArray());
+			await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+			await Console.Out.WriteLineAsync($"Resolved {packages.Count} packages.");
+			await Console.Out.WriteLineAsync();
 
 			if (opts.DependencyUsage) {
 				var depUsers = new Dictionary<PackageIdentity, List<PackageIdentity>>();
@@ -128,12 +133,38 @@ namespace SGL.NugetUnityRepackager {
 			var converter = new PackageConverter(opts.UnityVersion, opts.UnityRelease);
 			var convertedPackages = converter.ConvertPackages(packages, opts.PrimaryPackages.Cast<PackageIdentity>().ToHashSet());
 
+			await Console.Out.WriteLineAsync();
+			await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+			await Console.Out.WriteLineAsync("Packing UPM packages:\n");
+
 			Directory.CreateDirectory(opts.OutputDirectory);
 			var upmWriter = new UnityPackageWriter(opts.OutputDirectory);
 
 			foreach (var (identity, package) in convertedPackages) {
-				await Console.Out.WriteLineAsync($"{identity} => {string.Join(", ", package.Dependencies)}");
+				await Console.Out.WriteAsync($"{identity}");
+				if (opts.Verbosity > 0) {
+					await Console.Out.WriteLineAsync(":");
+				}
+				else {
+					await Console.Out.WriteAsync("...");
+				}
+				if (opts.Verbosity > 0) {
+					foreach (var dep in package.Dependencies) {
+						await Console.Out.WriteLineAsync($"\tdep: {dep}");
+					}
+				}
+				if (opts.Verbosity > 1) {
+					foreach (var (content, _) in package.Contents) {
+						await Console.Out.WriteLineAsync($"\tcontent: {content}");
+					}
+				}
 				await upmWriter.WriteUnityPackageAsync(package, ct);
+				if (opts.Verbosity > 2) {
+					await Console.Out.WriteLineAsync("\t=> done");
+				}
+				if (opts.Verbosity == 0) {
+					await Console.Out.WriteLineAsync(" done");
+				}
 			}
 		}
 		static async Task DisplayHelp(ParserResult<Options> result, IEnumerable<Error> errs) {
