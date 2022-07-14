@@ -32,6 +32,9 @@ namespace SGL.NugetUnityRepackager {
 			[Option('r', "unity-release", HelpText = "Unity release within the version, to specify in package manifest.")]
 			public string? UnityRelease { get; set; } = null;
 
+			[Option("dependency-usage", HelpText = "Collect and display information about how many / which package use each gathered package as a dependency.\nWithout -v the package counts are given. With -v the packages are listed.\nPrimary packages usually have not usages and are thus not listed.")]
+			public bool DependencyUsage { get; set; } = false;
+
 			[Usage]
 			public static IEnumerable<Example> Examples => new List<Example> {
 				new Example("Convert version 1.2.3 of Some.Example.Package and all of its dependencies, and store the converted packages in output/.",
@@ -97,6 +100,30 @@ namespace SGL.NugetUnityRepackager {
 			var ct = cancellationTokenSource.Token;
 			Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
 			var packages = await treeResolver.GetAllDependenciesAsync(NuGetFramework.ParseFolder("netstandard2.1"), ct, opts.PrimaryPackages.ToArray());
+
+			if (opts.DependencyUsage) {
+				var depUsers = new Dictionary<PackageIdentity, List<PackageIdentity>>();
+				foreach (var (userIdent, userPkg) in packages) {
+					foreach (var dependency in userPkg.Dependencies) {
+						if (!depUsers.TryGetValue(dependency, out var deps)) {
+							deps = new List<PackageIdentity>();
+							depUsers[dependency] = deps;
+						}
+						deps.Add(userIdent);
+					}
+				}
+				await Console.Out.WriteLineAsync();
+				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+				await Console.Out.WriteLineAsync(opts.Verbosity > 0 ? "Dependency Usages:\n" : "Dependency Counts:\n");
+				foreach (var (pkg, users) in depUsers) {
+					await Console.Out.WriteLineAsync($"{pkg}: {users.Count}");
+					if (opts.Verbosity > 0) {
+						foreach (var user in users) {
+							await Console.Out.WriteLineAsync($"\t{user}");
+						}
+					}
+				}
+			}
 
 			var converter = new PackageConverter(opts.UnityVersion, opts.UnityRelease);
 			var convertedPackages = converter.ConvertPackages(packages, opts.PrimaryPackages.Cast<PackageIdentity>().ToHashSet());
