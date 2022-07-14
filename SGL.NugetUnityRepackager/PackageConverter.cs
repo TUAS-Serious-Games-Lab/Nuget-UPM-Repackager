@@ -11,10 +11,12 @@ namespace SGL.NugetUnityRepackager {
 	public class PackageConverter {
 		private string? unity;
 		private string? unityRelease;
+		private string mainDirectory;
 
-		public PackageConverter(string? unity, string? unityRelease) {
+		public PackageConverter(string? unity, string? unityRelease, string mainDirectory) {
 			this.unity = unity;
 			this.unityRelease = unityRelease;
+			this.mainDirectory = mainDirectory;
 		}
 
 		public IReadOnlyDictionary<PackageIdentity, Package> ConvertPackages(IReadOnlyDictionary<PackageIdentity, Package> input, ISet<PackageIdentity> primaryPackages) {

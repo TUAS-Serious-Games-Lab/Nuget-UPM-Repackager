@@ -17,6 +17,9 @@ namespace SGL.NugetUnityRepackager {
 			[Option('v', FlagCounter = true)]
 			public int Verbosity { get; set; } = 0;
 
+			[Option('d', "directory", HelpText = "The main operating directory, from which the NuGet.config is looked-up and where overrides.json is searched.")]
+			public string MainDirectory { get; set; } = ".";
+
 			[Option('o', "output-dir", HelpText = "The directory to which the repackaged packages shall be written.")]
 			public string OutputDirectory { get; set; } = "output";
 
@@ -95,7 +98,7 @@ namespace SGL.NugetUnityRepackager {
 					config.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
 				})
 			};
-			using var treeResolver = new NugetTreeResolver(loggerFactory, Directory.GetCurrentDirectory());
+			using var treeResolver = new NugetTreeResolver(loggerFactory, Path.GetFullPath(opts.MainDirectory));
 			var cancellationTokenSource = new CancellationTokenSource();
 			var ct = cancellationTokenSource.Token;
 			Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
@@ -130,7 +133,7 @@ namespace SGL.NugetUnityRepackager {
 				}
 			}
 
-			var converter = new PackageConverter(opts.UnityVersion, opts.UnityRelease);
+			var converter = new PackageConverter(opts.UnityVersion, opts.UnityRelease, Path.GetFullPath(opts.MainDirectory));
 			var convertedPackages = converter.ConvertPackages(packages, opts.PrimaryPackages.Cast<PackageIdentity>().ToHashSet());
 
 			await Console.Out.WriteLineAsync();
