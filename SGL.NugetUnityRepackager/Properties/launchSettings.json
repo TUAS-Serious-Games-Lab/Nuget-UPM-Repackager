@@ -2,7 +2,8 @@
   "profiles": {
     "SGL.NugetUnityRepackager": {
       "commandName": "Project",
-      "commandLineArgs": "--dependency-usage -vvv -f netstandard2.1 SGL.Community.Client@0.0.4 SGL.Analytics.Client@0.0.1"
+      //"commandLineArgs": "--dependency-usage -vvv -f netstandard2.1 SGL.Community.Client@0.0.4 SGL.Analytics.Client@0.0.1"
+      "commandLineArgs": "--dependency-usage -vvv -f netstandard2.1 SGL.Community.Client@0.0.4 SGL.Community.Client.LocalData.Sqlite@0.0.4 SGL.Analytics.Client@0.0.1"
     },
     "Docker": {
       "commandName": "Docker"

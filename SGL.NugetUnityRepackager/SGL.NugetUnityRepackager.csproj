@@ -20,6 +20,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="ignored-dependencies.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="overrides.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

@@ -109,6 +109,20 @@ namespace SGL.NugetUnityRepackager {
 			await Console.Out.WriteLineAsync($"Resolved {packages.Count} packages.");
 			await Console.Out.WriteLineAsync();
 
+			var ignoredDependencies = (await File.ReadAllLinesAsync("ignored-dependencies.txt", ct))
+				.Select(line => line.Trim())
+				.Where(line => !string.IsNullOrEmpty(line))
+				.Where(line => !line.StartsWith('#'))
+				.Select(name => name.ToLowerInvariant())
+				.ToHashSet();
+			packages = packages
+				.Where(pkg => !ignoredDependencies.Contains(pkg.Key.Id.ToLowerInvariant()))
+				.Select(pkg => new Package(
+					pkg.Value.Identifier,
+					pkg.Value.Dependencies.Where(dep => !ignoredDependencies.Contains(dep.Id.ToLowerInvariant())).ToList(),
+					pkg.Value.Metadata, pkg.Value.Contents))
+				.ToDictionary(pkg => pkg.Identifier);
+
 			if (opts.DependencyUsage) {
 				var depUsers = new Dictionary<PackageIdentity, List<PackageIdentity>>();
 				foreach (var (userIdent, userPkg) in packages) {
