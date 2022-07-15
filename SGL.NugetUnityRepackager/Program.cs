@@ -121,7 +121,7 @@ namespace SGL.NugetUnityRepackager {
 					pkg.Value.Identifier,
 					pkg.Value.Dependencies.Where(dep => !ignoredDependencies.Contains(dep.Id.ToLowerInvariant())).ToList(),
 					pkg.Value.Metadata, pkg.Value.Contents))
-				.ToDictionary(pkg => pkg.Identifier);
+				.ToDictionary(pkg => new PackageIdentity(pkg.Identifier.Id, pkg.Identifier.Version));
 
 			if (opts.DependencyUsage) {
 				var depUsers = new Dictionary<PackageIdentity, List<PackageIdentity>>();
