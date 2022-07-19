@@ -17,6 +17,8 @@ namespace SGL.NugetUnityRepackager {
 		}
 
 		public class PackageSpecificOverrideSettings {
+			public bool IgnoreGlobalPathMapping { get; set; } = false;
+			public List<PathMappingEntry>? PathMapping { get; set; } = null;
 			public List<string>? ContentPathFilterPrefixes { get; set; } = null;
 			public Dictionary<string, string> Overlays { get; set; } = new Dictionary<string, string>();
 		}

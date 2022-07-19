@@ -16,7 +16,24 @@ namespace SGL.NugetUnityRepackager {
 			this.mainDirectory = mainDirectory;
 			packageNameMatchPrefixes = settings.NamePrefixMapping.Keys.OrderByDescending(k => k.Length).ToList();
 			globalPathMappings = settings.PathMapping.OrderByDescending(m => m.MatchPrefix.Length).ThenByDescending(m => m.MatchSuffix.Length).ToList();
-			pkgSpecificOverrides = settings.PackageSpecific.ToDictionary(kvp => kvp.Key.ToLowerInvariant(), kvp => kvp.Value);
+			pkgSpecificOverrides = settings.PackageSpecific.ToDictionary(kvp => kvp.Key.ToLowerInvariant(), kvp => {
+				var pathMappings = kvp.Value.PathMapping;
+				if (pathMappings == null) {
+					pathMappings = globalPathMappings;
+				}
+				else if (kvp.Value.IgnoreGlobalPathMapping) {
+					pathMappings = pathMappings.OrderByDescending(m => m.MatchPrefix.Length).ThenByDescending(m => m.MatchSuffix.Length).ToList();
+				}
+				else {
+					pathMappings = pathMappings.OrderByDescending(m => m.MatchPrefix.Length).ThenByDescending(m => m.MatchSuffix.Length).Concat(globalPathMappings).ToList();
+				}
+				return new OverrideSettings.PackageSpecificOverrideSettings {
+					ContentPathFilterPrefixes = kvp.Value.ContentPathFilterPrefixes,
+					Overlays = kvp.Value.Overlays,
+					IgnoreGlobalPathMapping = kvp.Value.IgnoreGlobalPathMapping,
+					PathMapping = pathMappings,
+				};
+			});
 		}
 
 		public string MapPackageName(string packageName) {
@@ -31,8 +48,12 @@ namespace SGL.NugetUnityRepackager {
 			return packageName;
 		}
 
-		public string MapPath(string contentPath) {
-			foreach (var entry in globalPathMappings) {
+		public string MapPath(string contentPath, PackageIdentity pkgIdent) {
+			IEnumerable<OverrideSettings.PathMappingEntry> pathMappings = globalPathMappings;
+			if (pkgSpecificOverrides.TryGetValue(pkgIdent.Id.ToLowerInvariant(), out var pkgOverrides)) {
+				pathMappings = pkgOverrides.PathMapping ?? globalPathMappings;
+			}
+			foreach (var entry in pathMappings) {
 				if (contentPath.StartsWith(entry.MatchPrefix, StringComparison.OrdinalIgnoreCase) &&
 					contentPath.EndsWith(entry.MatchSuffix, StringComparison.OrdinalIgnoreCase)) {
 					if (entry.ReplacePrefix != null && entry.ReplaceSuffix != null) {
