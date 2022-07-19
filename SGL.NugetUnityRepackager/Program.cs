@@ -69,6 +69,7 @@ namespace SGL.NugetUnityRepackager {
 			var result = parser.ParseArguments<Options>(args);
 			result = await result.WithParsedAsync(RealMain);
 			result = await result.WithNotParsedAsync(errs => DisplayHelp(result, errs));
+			Environment.Exit(0);
 		}
 
 		static async Task RealMain(Options opts) {
@@ -98,105 +99,112 @@ namespace SGL.NugetUnityRepackager {
 					config.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
 				})
 			};
-			using var treeResolver = new NugetTreeResolver(loggerFactory, Path.GetFullPath(opts.MainDirectory));
-			var cancellationTokenSource = new CancellationTokenSource();
-			var ct = cancellationTokenSource.Token;
-			Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
-			await Console.Out.WriteLineAsync("Gathering and resolving package dependencies:");
-			await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
-			var packages = await treeResolver.GetAllDependenciesAsync(NuGetFramework.ParseFolder("netstandard2.1"), ct, opts.PrimaryPackages.ToArray());
-			await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
-			await Console.Out.WriteLineAsync($"Resolved {packages.Count} packages.");
-			await Console.Out.WriteLineAsync();
+			try {
+				using var treeResolver = new NugetTreeResolver(loggerFactory, Path.GetFullPath(opts.MainDirectory));
+				var cancellationTokenSource = new CancellationTokenSource();
+				var ct = cancellationTokenSource.Token;
+				Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
+				await Console.Out.WriteLineAsync("Gathering and resolving package dependencies:");
+				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+				var packages = await treeResolver.GetAllDependenciesAsync(NuGetFramework.ParseFolder("netstandard2.1"), ct, opts.PrimaryPackages.ToArray());
+				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+				await Console.Out.WriteLineAsync($"Resolved {packages.Count} packages.");
+				await Console.Out.WriteLineAsync();
 
-			var ignoredDependencies = (await File.ReadAllLinesAsync("ignored-dependencies.txt", ct))
-				.Select(line => line.Trim())
-				.Where(line => !string.IsNullOrEmpty(line))
-				.Where(line => !line.StartsWith('#'))
-				.Select(name => name.ToLowerInvariant())
-				.ToHashSet();
-			packages = packages
-				.Where(pkg => !ignoredDependencies.Contains(pkg.Key.Id.ToLowerInvariant()))
-				.Select(pkg => new Package(
-					pkg.Value.Identifier,
-					pkg.Value.Dependencies.Where(dep => !ignoredDependencies.Contains(dep.Id.ToLowerInvariant())).ToList(),
-					pkg.Value.Metadata, pkg.Value.Contents, pkg.Value.NativeRuntimesContents))
-				.ToDictionary(pkg => new PackageIdentity(pkg.Identifier.Id, pkg.Identifier.Version));
+				var ignoredDependencies = (await File.ReadAllLinesAsync("ignored-dependencies.txt", ct))
+					.Select(line => line.Trim())
+					.Where(line => !string.IsNullOrEmpty(line))
+					.Where(line => !line.StartsWith('#'))
+					.Select(name => name.ToLowerInvariant())
+					.ToHashSet();
+				packages = packages
+					.Where(pkg => !ignoredDependencies.Contains(pkg.Key.Id.ToLowerInvariant()))
+					.Select(pkg => new Package(
+						pkg.Value.Identifier,
+						pkg.Value.Dependencies.Where(dep => !ignoredDependencies.Contains(dep.Id.ToLowerInvariant())).ToList(),
+						pkg.Value.Metadata, pkg.Value.Contents, pkg.Value.NativeRuntimesContents))
+					.ToDictionary(pkg => new PackageIdentity(pkg.Identifier.Id, pkg.Identifier.Version));
 
-			if (opts.DependencyUsage) {
-				var depUsers = new Dictionary<PackageIdentity, List<PackageIdentity>>();
-				foreach (var (userIdent, userPkg) in packages) {
-					foreach (var dependency in userPkg.Dependencies) {
-						if (!depUsers.TryGetValue(dependency, out var deps)) {
-							deps = new List<PackageIdentity>();
-							depUsers[dependency] = deps;
+				if (opts.DependencyUsage) {
+					var depUsers = new Dictionary<PackageIdentity, List<PackageIdentity>>();
+					foreach (var (userIdent, userPkg) in packages) {
+						foreach (var dependency in userPkg.Dependencies) {
+							if (!depUsers.TryGetValue(dependency, out var deps)) {
+								deps = new List<PackageIdentity>();
+								depUsers[dependency] = deps;
+							}
+							deps.Add(userIdent);
 						}
-						deps.Add(userIdent);
+					}
+					await Console.Out.WriteLineAsync();
+					await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+					await Console.Out.WriteLineAsync(opts.Verbosity > 0 ? "Dependency Usages:\n" : "Dependency Counts:\n");
+					foreach (var (pkg, users) in depUsers) {
+						await Console.Out.WriteLineAsync($"{pkg}: {users.Count}");
+						if (opts.Verbosity > 0) {
+							foreach (var user in users) {
+								await Console.Out.WriteLineAsync($"\t{user}");
+							}
+						}
 					}
 				}
+
+				var converter = new PackageConverter(loggerFactory, opts.UnityVersion, opts.UnityRelease, Path.GetFullPath(opts.MainDirectory), ct);
+				var convertedPackages = await converter.ConvertPackagesAsync(packages, opts.PrimaryPackages.Cast<PackageIdentity>().ToHashSet());
+
 				await Console.Out.WriteLineAsync();
 				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
-				await Console.Out.WriteLineAsync(opts.Verbosity > 0 ? "Dependency Usages:\n" : "Dependency Counts:\n");
-				foreach (var (pkg, users) in depUsers) {
-					await Console.Out.WriteLineAsync($"{pkg}: {users.Count}");
+				await Console.Out.WriteLineAsync("Packing UPM packages:\n");
+
+				Directory.CreateDirectory(opts.OutputDirectory);
+				var upmWriter = new UnityPackageWriter(opts.OutputDirectory);
+
+				foreach (var (identity, package) in convertedPackages) {
+					await Console.Out.WriteAsync($"{identity}");
 					if (opts.Verbosity > 0) {
-						foreach (var user in users) {
-							await Console.Out.WriteLineAsync($"\t{user}");
+						await Console.Out.WriteLineAsync(":");
+					}
+					else {
+						await Console.Out.WriteAsync("...");
+					}
+					if (opts.Verbosity > 0) {
+						foreach (var dep in package.Dependencies) {
+							await Console.Out.WriteLineAsync($"\tdep: {dep}");
 						}
 					}
-				}
-			}
-
-			var converter = new PackageConverter(loggerFactory, opts.UnityVersion, opts.UnityRelease, Path.GetFullPath(opts.MainDirectory), ct);
-			var convertedPackages = await converter.ConvertPackagesAsync(packages, opts.PrimaryPackages.Cast<PackageIdentity>().ToHashSet());
-
-			await Console.Out.WriteLineAsync();
-			await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
-			await Console.Out.WriteLineAsync("Packing UPM packages:\n");
-
-			Directory.CreateDirectory(opts.OutputDirectory);
-			var upmWriter = new UnityPackageWriter(opts.OutputDirectory);
-
-			foreach (var (identity, package) in convertedPackages) {
-				await Console.Out.WriteAsync($"{identity}");
-				if (opts.Verbosity > 0) {
-					await Console.Out.WriteLineAsync(":");
-				}
-				else {
-					await Console.Out.WriteAsync("...");
-				}
-				if (opts.Verbosity > 0) {
-					foreach (var dep in package.Dependencies) {
-						await Console.Out.WriteLineAsync($"\tdep: {dep}");
+					if (opts.Verbosity > 1) {
+						foreach (var (content, _) in package.Contents) {
+							await Console.Out.WriteLineAsync($"\tcontent: {content}");
+						}
+					}
+					await upmWriter.WriteUnityPackageAsync(package, ct);
+					if (opts.Verbosity > 2) {
+						await Console.Out.WriteLineAsync("\t=> done");
+					}
+					if (opts.Verbosity == 0) {
+						await Console.Out.WriteLineAsync(" done");
 					}
 				}
-				if (opts.Verbosity > 1) {
-					foreach (var (content, _) in package.Contents) {
-						await Console.Out.WriteLineAsync($"\tcontent: {content}");
-					}
-				}
-				await upmWriter.WriteUnityPackageAsync(package, ct);
-				if (opts.Verbosity > 2) {
-					await Console.Out.WriteLineAsync("\t=> done");
-				}
-				if (opts.Verbosity == 0) {
-					await Console.Out.WriteLineAsync(" done");
-				}
-			}
 
-			await Console.Out.WriteLineAsync();
-			await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+				await Console.Out.WriteLineAsync();
+				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
 
-			var validator = new PackageValidator(loggerFactory.CreateLogger<PackageValidator>());
-			int problemCount = 0;
-			foreach (var package in convertedPackages.Values) {
-				problemCount += validator.Validate(package);
+				var validator = new PackageValidator(loggerFactory.CreateLogger<PackageValidator>());
+				int problemCount = 0;
+				foreach (var package in convertedPackages.Values) {
+					problemCount += validator.Validate(package);
+				}
+				if (problemCount > 0) {
+					loggerFactory.CreateLogger<PackageValidator>().LogWarning("Found {count} problems with the converted packages.", problemCount);
+				}
+				await Console.Out.FlushAsync();
+				await Console.Error.FlushAsync();
 			}
-			if (problemCount > 0) {
-				loggerFactory.CreateLogger<PackageValidator>().LogWarning("Found {count} problems with the converted packages.", problemCount);
+			catch (Exception ex) {
+				loggerFactory.CreateLogger<Program>().LogError(ex, "Package conversion failed.");
+				loggerFactory.Dispose();
+				Environment.Exit(2);
 			}
-			await Console.Out.FlushAsync();
-			await Console.Error.FlushAsync();
 		}
 		static async Task DisplayHelp(ParserResult<Options> result, IEnumerable<Error> errs) {
 			await Console.Out.WriteLineAsync(HelpText.AutoBuild(result, h => {
@@ -206,7 +214,7 @@ namespace SGL.NugetUnityRepackager {
 				h.MaximumDisplayWidth = 170;
 				return h;
 			}));
+			Environment.Exit(1);
 		}
-
 	}
 }

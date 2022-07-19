@@ -94,14 +94,14 @@ namespace SGL.NugetUnityRepackager {
 
 		public IEnumerable<KeyValuePair<string, Func<CancellationToken, Task<Stream>>>> GetOverlays(PackageIdentity inPkgIdent) {
 			if (pkgSpecificOverrides.TryGetValue(inPkgIdent.Id.ToLowerInvariant(), out var pkgOverrides)) {
-				return pkgOverrides.Overlays.ToDictionary(kvp => kvp.Key, kvp => GetOverlayFile(kvp.Value, kvp.Key));
+				return pkgOverrides.Overlays.ToDictionary(kvp => kvp.Key, kvp => GetOverlayFile(kvp.Value, kvp.Key, inPkgIdent));
 			}
 			else {
 				return Enumerable.Empty<KeyValuePair<string, Func<CancellationToken, Task<Stream>>>>();
 			}
 		}
 
-		private Func<CancellationToken, Task<Stream>> GetOverlayFile(string filePath, string contentPath) {
+		private Func<CancellationToken, Task<Stream>> GetOverlayFile(string filePath, string contentPath, PackageIdentity pkgIdent) {
 			return ct => {
 				try {
 					var file = Path.Combine(mainDirectory, filePath);
@@ -109,7 +109,7 @@ namespace SGL.NugetUnityRepackager {
 					return Task.FromResult<Stream>(stream);
 				}
 				catch (Exception ex) {
-					logger.LogError(ex, "Couldn't read file {filePath} for overlay {contentPath}.", filePath, contentPath);
+					logger.LogError(ex, "Couldn't read file {filePath} for overlay {contentPath} in package {pkg}.", filePath, contentPath, pkgIdent.Id);
 					throw;
 				}
 			};
