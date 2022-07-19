@@ -112,7 +112,8 @@ namespace SGL.NugetUnityRepackager {
 				logger.LogWarning("No lib items for {framework} in package {pkg}.", framework, pkgId);
 			}
 			var contentItems = frameworkLibItems?.Items ?? Enumerable.Empty<string>();
-			contentItems = contentItems.Concat(await GetRuntimesItemsAsync(pkgReader, ct));
+			var nativeRuntimesContents = (await GetRuntimesItemsAsync(pkgReader, ct)).ToList();
+			contentItems = contentItems.Concat(nativeRuntimesContents);
 			var contents = contentItems.ToDictionary(item => item, item => GetItemReader(item, pkgReader));
 			var allDependencies = (await pkgReader.GetPackageDependenciesAsync(ct)).ToList();
 			var frameworkDependencies = allDependencies.GetNearest(framework);
@@ -124,7 +125,7 @@ namespace SGL.NugetUnityRepackager {
 					pkgId, nearestFramework, frameworkDependencies?.TargetFramework);
 			}
 			var dependencies = frameworkDependencies?.Packages?.Select(pkg => resolvedVersions[pkg.Id]).ToList() ?? new List<PackageIdentity>();
-			return (new PackageIdentity(pkgId.Id, pkgId.Version), new Package(pkgId, dependencies, GetMetadata(await pkgReader.GetNuspecReaderAsync(ct), ct), contents));
+			return (new PackageIdentity(pkgId.Id, pkgId.Version), new Package(pkgId, dependencies, GetMetadata(await pkgReader.GetNuspecReaderAsync(ct), ct), contents, nativeRuntimesContents));
 		}
 
 		private async Task<IEnumerable<string>> GetRuntimesItemsAsync(PackageReaderBase pkgReader, CancellationToken ct) {

@@ -63,7 +63,11 @@ namespace SGL.NugetUnityRepackager {
 						.Prepend(await GenerateUpmManifestAsync(inPkg, primaryPackages.Contains(inPkgIdent)))
 						.Select(kvp => new KeyValuePair<string, Func<CancellationToken, Task<Stream>>>(overrides.MapPath(kvp.Key, inPkgIdent), kvp.Value))
 						.Concat(overrides.GetOverlays(inPkgIdent))
-						.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+						.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+					inPkg.NativeRuntimesContents
+						.Where(path => overrides.FilterContents(inPkgIdent, path))
+						.Select(path => overrides.MapPath(path, inPkgIdent))
+						.ToList());
 				result.Add(outIdent, outPkg);
 			}
 			return result;

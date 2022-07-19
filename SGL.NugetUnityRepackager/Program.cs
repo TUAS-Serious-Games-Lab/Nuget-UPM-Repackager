@@ -120,7 +120,7 @@ namespace SGL.NugetUnityRepackager {
 				.Select(pkg => new Package(
 					pkg.Value.Identifier,
 					pkg.Value.Dependencies.Where(dep => !ignoredDependencies.Contains(dep.Id.ToLowerInvariant())).ToList(),
-					pkg.Value.Metadata, pkg.Value.Contents))
+					pkg.Value.Metadata, pkg.Value.Contents, pkg.Value.NativeRuntimesContents))
 				.ToDictionary(pkg => new PackageIdentity(pkg.Identifier.Id, pkg.Identifier.Version));
 
 			if (opts.DependencyUsage) {
@@ -183,6 +183,20 @@ namespace SGL.NugetUnityRepackager {
 					await Console.Out.WriteLineAsync(" done");
 				}
 			}
+
+			await Console.Out.WriteLineAsync();
+			await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+
+			var validator = new PackageValidator(loggerFactory.CreateLogger<PackageValidator>());
+			int problemCount = 0;
+			foreach (var package in convertedPackages.Values) {
+				problemCount += validator.Validate(package);
+			}
+			if (problemCount > 0) {
+				loggerFactory.CreateLogger<PackageValidator>().LogWarning("Found {count} problems with the converted packages.", problemCount);
+			}
+			await Console.Out.FlushAsync();
+			await Console.Error.FlushAsync();
 		}
 		static async Task DisplayHelp(ParserResult<Options> result, IEnumerable<Error> errs) {
 			await Console.Out.WriteLineAsync(HelpText.AutoBuild(result, h => {
