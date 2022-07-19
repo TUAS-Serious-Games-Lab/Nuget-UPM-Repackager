@@ -72,7 +72,7 @@ namespace SGL.NugetUnityRepackager {
 		}
 
 		static async Task RealMain(Options opts) {
-			var loggerFactory = opts.Verbosity switch {
+			using var loggerFactory = opts.Verbosity switch {
 				0 => LoggerFactory.Create(config => {
 					config.AddSimpleConsole(conf => {
 						conf.SingleLine = true;
