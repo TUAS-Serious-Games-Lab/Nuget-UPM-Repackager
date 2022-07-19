@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace SGL.NugetUnityRepackager {
 	public class PackageValidator {
 		private ILogger<PackageValidator> logger;
+		private static ISet<string> nativeSuffixes = new HashSet<string>(new[] { ".dll", ".so", ".a", ".dylib" }, StringComparer.OrdinalIgnoreCase);
 
 		public PackageValidator(ILogger<PackageValidator> logger) {
 			this.logger = logger;
@@ -16,7 +17,7 @@ namespace SGL.NugetUnityRepackager {
 		public int Validate(Package package) {
 			int problemCount = 0;
 			foreach (var path in package.NativeRuntimesContents) {
-				if (!package.Contents.ContainsKey($"{path}.meta")) {
+				if (nativeSuffixes.Any(suffix => path.EndsWith(suffix)) && !package.Contents.ContainsKey($"{path}.meta")) {
 					problemCount++;
 					logger.LogWarning("{pkg}: No .meta file for native runtimes content '{path}'.", package.Identifier.Id, path);
 				}
