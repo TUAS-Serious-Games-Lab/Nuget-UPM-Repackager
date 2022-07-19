@@ -5,13 +5,15 @@ namespace SGL.NugetUnityRepackager {
 	public class Overrides {
 		private ILogger<Overrides> logger;
 		private OverrideSettings settings;
+		private readonly string mainDirectory;
 		private List<string> packageNameMatchPrefixes;
 		private List<OverrideSettings.PathMappingEntry> globalPathMappings = new List<OverrideSettings.PathMappingEntry>();
 		private Dictionary<string, OverrideSettings.PackageSpecificOverrideSettings> pkgSpecificOverrides;
 
-		public Overrides(ILogger<Overrides> logger, OverrideSettings settings) {
+		public Overrides(ILogger<Overrides> logger, OverrideSettings settings, string mainDirectory) {
 			this.logger = logger;
 			this.settings = settings;
+			this.mainDirectory = mainDirectory;
 			packageNameMatchPrefixes = settings.NamePrefixMapping.Keys.OrderByDescending(k => k.Length).ToList();
 			globalPathMappings = settings.PathMapping.OrderByDescending(m => m.MatchPrefix.Length).ThenByDescending(m => m.MatchSuffix.Length).ToList();
 			pkgSpecificOverrides = settings.PackageSpecific.ToDictionary(kvp => kvp.Key.ToLowerInvariant(), kvp => kvp.Value);
@@ -67,6 +69,29 @@ namespace SGL.NugetUnityRepackager {
 			else {
 				return pkgOverrides.ContentPathFilterPrefixes.Any(prefix => contentPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
 			}
+		}
+
+		public IEnumerable<KeyValuePair<string, Func<CancellationToken, Task<Stream>>>> GetOverlays(PackageIdentity inPkgIdent) {
+			if (pkgSpecificOverrides.TryGetValue(inPkgIdent.Id.ToLowerInvariant(), out var pkgOverrides)) {
+				return pkgOverrides.Overlays.ToDictionary(kvp => kvp.Key, kvp => GetOverlayFile(kvp.Value, kvp.Key));
+			}
+			else {
+				return Enumerable.Empty<KeyValuePair<string, Func<CancellationToken, Task<Stream>>>>();
+			}
+		}
+
+		private Func<CancellationToken, Task<Stream>> GetOverlayFile(string filePath, string contentPath) {
+			return ct => {
+				try {
+					var file = Path.Combine(mainDirectory, filePath);
+					var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize: 4096, useAsync: true);
+					return Task.FromResult<Stream>(stream);
+				}
+				catch (Exception ex) {
+					logger.LogError(ex, "Couldn't read file {filePath} for overlay {contentPath}.", filePath, contentPath);
+					throw;
+				}
+			};
 		}
 	}
 }

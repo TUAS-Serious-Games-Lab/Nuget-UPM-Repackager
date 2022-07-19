@@ -49,7 +49,7 @@ namespace SGL.NugetUnityRepackager {
 			else {
 				settings = new OverrideSettings();
 			}
-			return new Overrides(logger, settings);
+			return new Overrides(logger, settings, mainDirectory);
 		}
 
 		public async Task<IReadOnlyDictionary<PackageIdentity, Package>> ConvertPackagesAsync(IReadOnlyDictionary<PackageIdentity, Package> input, ISet<PackageIdentity> primaryPackages) {
@@ -62,6 +62,7 @@ namespace SGL.NugetUnityRepackager {
 						.Where(kvp => overrides.FilterContents(inPkgIdent, kvp.Key))
 						.Prepend(await GenerateUpmManifestAsync(inPkg, primaryPackages.Contains(inPkgIdent)))
 						.Select(kvp => new KeyValuePair<string, Func<CancellationToken, Task<Stream>>>(overrides.MapPath(kvp.Key), kvp.Value))
+						.Concat(overrides.GetOverlays(inPkgIdent))
 						.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 				result.Add(outIdent, outPkg);
 			}

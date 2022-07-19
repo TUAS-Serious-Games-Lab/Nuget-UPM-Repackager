@@ -35,7 +35,17 @@
         "runtimes/osx-arm64",
         "runtimes/win-x64",
         "runtimes/win-x86"
-      ]
+      ],
+      "Overlays": {
+        "runtimes/linux-arm/native/libe_sqlite3.so.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/linux-arm/libe_sqlite3.so.meta",
+        "runtimes/linux-arm64/native/libe_sqlite3.so.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/linux-arm64/libe_sqlite3.so.meta",
+        "runtimes/linux-x64/native/libe_sqlite3.so.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/linux-x64/libe_sqlite3.so.meta",
+        "runtimes/linux-x86/native/libe_sqlite3.so.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/linux-x86/libe_sqlite3.so.meta",
+        "runtimes/osx-x64/native/libe_sqlite3.dylib.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/osx-x64/libe_sqlite3.dylib.meta",
+        "runtimes/osx-arm64/native/libe_sqlite3.dylib.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/osx-arm64/libe_sqlite3.dylib.meta",
+        "runtimes/win-x64/native/e_sqlite3.dll.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/win-x64/e_sqlite3.dll.meta",
+        "runtimes/win-x86/native/e_sqlite3.dll.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/win-x86/e_sqlite3.dll.meta"
+      }
     }
   }
 }

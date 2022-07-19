@@ -18,6 +18,7 @@ namespace SGL.NugetUnityRepackager {
 
 		public class PackageSpecificOverrideSettings {
 			public List<string>? ContentPathFilterPrefixes { get; set; } = null;
+			public Dictionary<string, string> Overlays { get; set; } = new Dictionary<string, string>();
 		}
 	}
 }
