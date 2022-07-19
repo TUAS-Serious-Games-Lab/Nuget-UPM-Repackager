@@ -22,5 +22,20 @@
       "MatchSuffix": ".xml",
       "ReplacePrefix": "Documentation~/"
     }
-  ]
+  ],
+  "PackageSpecific": {
+    "SQLitePCLRaw.lib.e_sqlite3": {
+      "ContentPathFilterPrefixes": [
+        "package.json",
+        "runtimes/linux-arm",
+        "runtimes/linux-arm64",
+        "runtimes/linux-x64",
+        "runtimes/linux-x86",
+        "runtimes/osx-x64",
+        "runtimes/osx-arm64",
+        "runtimes/win-x64",
+        "runtimes/win-x86"
+      ]
+    }
+  }
 }

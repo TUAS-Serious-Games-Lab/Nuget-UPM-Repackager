@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using NuGet.Packaging.Core;
 
 namespace SGL.NugetUnityRepackager {
 	public class Overrides {
@@ -6,12 +7,14 @@ namespace SGL.NugetUnityRepackager {
 		private OverrideSettings settings;
 		private List<string> packageNameMatchPrefixes;
 		private List<OverrideSettings.PathMappingEntry> globalPathMappings = new List<OverrideSettings.PathMappingEntry>();
+		private Dictionary<string, OverrideSettings.PackageSpecificOverrideSettings> pkgSpecificOverrides;
 
 		public Overrides(ILogger<Overrides> logger, OverrideSettings settings) {
 			this.logger = logger;
 			this.settings = settings;
 			packageNameMatchPrefixes = settings.NamePrefixMapping.Keys.OrderByDescending(k => k.Length).ToList();
 			globalPathMappings = settings.PathMapping.OrderByDescending(m => m.MatchPrefix.Length).ThenByDescending(m => m.MatchSuffix.Length).ToList();
+			pkgSpecificOverrides = settings.PackageSpecific.ToDictionary(kvp => kvp.Key.ToLowerInvariant(), kvp => kvp.Value);
 		}
 
 		public string MapPackageName(string packageName) {
@@ -52,6 +55,18 @@ namespace SGL.NugetUnityRepackager {
 			}
 			// No match -> return unchanged
 			return contentPath;
+		}
+
+		public bool FilterContents(PackageIdentity inPkgIdent, string contentPath) {
+			if (!pkgSpecificOverrides.TryGetValue(inPkgIdent.Id.ToLowerInvariant(), out var pkgOverrides)) {
+				return true;
+			}
+			else if (pkgOverrides.ContentPathFilterPrefixes == null) {
+				return true;
+			}
+			else {
+				return pkgOverrides.ContentPathFilterPrefixes.Any(prefix => contentPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+			}
 		}
 	}
 }

@@ -20,12 +20,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="ignored-dependencies.txt">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="overrides.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
+		<None Update="ignored-dependencies.txt">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="overrides.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<Content Include="overlays/**">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 </Project>
