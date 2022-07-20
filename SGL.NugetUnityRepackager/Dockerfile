@@ -26,4 +26,5 @@ WORKDIR /app
 COPY ["SGL.NugetUnityRepackager/NugetUnityRepackager.sh","/usr/local/bin/NugetUnityRepackager"]
 RUN chmod +x /usr/local/bin/NugetUnityRepackager
 COPY --from=publish /app/publish .
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
+CMD ["bash"]
