@@ -27,14 +27,15 @@
     "SQLitePCLRaw.lib.e_sqlite3": {
       "ContentPathFilterPrefixes": [
         "package.json",
-        "runtimes/linux-arm",
-        "runtimes/linux-arm64",
-        "runtimes/linux-x64",
-        "runtimes/linux-x86",
-        "runtimes/osx-x64",
-        "runtimes/osx-arm64",
-        "runtimes/win-x64",
-        "runtimes/win-x86"
+        "lib/",
+        "runtimes/linux-arm/",
+        "runtimes/linux-arm64/",
+        "runtimes/linux-x64/",
+        "runtimes/linux-x86/",
+        "runtimes/osx-x64/",
+        "runtimes/osx-arm64/",
+        "runtimes/win-x64/",
+        "runtimes/win-x86/"
       ],
       "Overlays": {
         "runtimes/linux-arm/native/libe_sqlite3.so.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/linux-arm/libe_sqlite3.so.meta",
@@ -46,6 +47,61 @@
         "runtimes/win-x64/native/e_sqlite3.dll.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/win-x64/e_sqlite3.dll.meta",
         "runtimes/win-x86/native/e_sqlite3.dll.meta": "overlays/SQLitePCLRaw.lib.e_sqlite3/win-x86/e_sqlite3.dll.meta"
       }
+    },
+    "Mono.Unix": {
+      "ContentPathFilterPrefixes": [
+        "package.json",
+        "lib/",
+        "runtimes/android-arm/",
+        "runtimes/android-arm64/",
+        "runtimes/android-x86/",
+        "runtimes/android-x64/",
+        "runtimes/ios-arm64/",
+        "runtimes/ios-armv7s/",
+        "runtimes/linux-x64/",
+        "runtimes/osx-x64/",
+        "runtimes/osx-arm64/"
+      ],
+      "Overlays": {
+        "runtimes/linux-x64/native/libMono.Unix.so.meta": "overlays/Mono.Unix/linux-x64/libMono.Unix.so.meta",
+        "runtimes/android-arm/native/libMono.Unix.so.meta": "overlays/Mono.Unix/android-arm/libMono.Unix.so.meta",
+        "runtimes/android-arm64/native/libMono.Unix.so.meta": "overlays/Mono.Unix/android-arm64/libMono.Unix.so.meta",
+        "runtimes/android-x64/native/libMono.Unix.so.meta": "overlays/Mono.Unix/android-x64/libMono.Unix.so.meta",
+        "runtimes/android-x86/native/libMono.Unix.so.meta": "overlays/Mono.Unix/android-x86/libMono.Unix.so.meta",
+        "runtimes/ios-arm64/native/libMono.Unix.a.meta": "overlays/Mono.Unix/ios-arm64/libMono.Unix.a.meta",
+        "runtimes/ios-armv7s/native/libMono.Unix.a.meta": "overlays/Mono.Unix/ios-armv7s/libMono.Unix.a.meta",
+        "runtimes/osx-x64/native/libMono.Unix.dylib.meta": "overlays/Mono.Unix/osx-x64/libMono.Unix.dylib.meta",
+        "runtimes/osx-arm64/native/libMono.Unix.dylib.meta": "overlays/Mono.Unix/osx-arm64/libMono.Unix.dylib.meta"
+      }
+    },
+    "System.IO.FileSystem.AccessControl": {
+      "ContentPathFilterPrefixes": [
+        "package.json",
+        "lib/",
+        "runtimes/win/lib/netstandard2.0/"
+      ],
+      "Overlays": {
+        "runtimes/win/lib/netstandard2.0/System.IO.FileSystem.AccessControl.dll.meta": "overlays/System.IO.FileSystem.AccessControl/win/netstandard2.0/System.IO.FileSystem.AccessControl.dll.meta",
+        "Runtime/System.IO.FileSystem.AccessControl.dll.meta": "overlays/System.IO.FileSystem.AccessControl/other/System.IO.FileSystem.AccessControl.dll.meta"
+      }
+    },
+    "System.Security.Principal.Windows": {
+      "ContentPathFilterPrefixes": [
+        "package.json",
+        "lib/"
+      ]
+    },
+    "System.Security.AccessControl": {
+      "ContentPathFilterPrefixes": [
+        "package.json",
+        "lib/"
+      ]
+    },
+    "System.Text.Encodings.Web": {
+      "ContentPathFilterPrefixes": [
+        "package.json",
+        "lib/"
+      ]
     }
   }
 }
