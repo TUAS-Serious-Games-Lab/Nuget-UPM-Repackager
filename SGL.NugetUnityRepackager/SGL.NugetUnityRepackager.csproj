@@ -6,6 +6,8 @@
 		<Nullable>enable</Nullable>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DockerfileBuildArguments>--build-arg SGL_PKG_USER --build-arg SGL_PKG_TOKEN</DockerfileBuildArguments>
+		<Authors>Serious Games Lab Team at Hochschule Trier</Authors>
+		<Company>Hochschule Trier</Company>
 	</PropertyGroup>
 
 	<ItemGroup>
