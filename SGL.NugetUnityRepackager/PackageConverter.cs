@@ -113,7 +113,7 @@ namespace SGL.NugetUnityRepackager {
 
 		private static string ConvertName(Overrides overrides, string origName) {
 			var mappedName = overrides.MapPackageName(origName);
-			return mappedName.ToLower();
+			return mappedName.Replace('_', '-').ToLower();
 		}
 	}
 }
