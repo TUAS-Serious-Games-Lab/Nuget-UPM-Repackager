@@ -21,7 +21,7 @@ namespace SGL.NugetUnityRepackager {
 			using var archiveStream = new TarOutputStream(gzipStream, Encoding.UTF8);
 			foreach (var (name, contentGetter) in package.Contents) {
 				using var content = await contentGetter(ct);
-				var entry = TarEntry.CreateTarEntry(name);
+				var entry = TarEntry.CreateTarEntry($"{package.Identifier.Id}/{name}");
 				entry.Size = content.Length;
 				archiveStream.PutNextEntry(entry);
 				await content.CopyToAsync(archiveStream);
