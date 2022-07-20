@@ -14,7 +14,7 @@ namespace SGL.NugetUnityRepackager {
 	internal class Program {
 
 		class Options {
-			[Option('v', FlagCounter = true)]
+			[Option('v', FlagCounter = true, HelpText = "Produce more verbose output. Can be specified up to 3 times.")]
 			public int Verbosity { get; set; } = 0;
 
 			[Option('d', "directory", HelpText = "The main operating directory, from which the NuGet.config is looked-up and where overrides.json is searched.")]
