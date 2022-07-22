@@ -20,14 +20,20 @@ namespace SGL.NugetUnityRepackager {
 			using var gzipStream = new GZipStream(fileStream, CompressionLevel.Optimal, leaveOpen: true);
 			using var archiveStream = new TarOutputStream(gzipStream, Encoding.UTF8);
 			foreach (var (name, contentGetter) in package.Contents) {
-				using var content = await contentGetter(ct);
-				var entry = TarEntry.CreateTarEntry($"{package.Identifier.Id}/{name}");
-				entry.Size = content.Length;
-				archiveStream.PutNextEntry(entry);
-				await content.CopyToAsync(archiveStream);
-				archiveStream.CloseEntry();
+				await WriteTarEntry(archiveStream, $"{package.Identifier.Id}/{name}", contentGetter, ct);
 			}
+			var (metaName, metaContent) = MetaFileGenerator.GenerateMetaFileForDirectory(package.Identifier.Id);
+			await WriteTarEntry(archiveStream, metaName, metaContent, ct);
 			archiveStream.Close();
+		}
+
+		private static async Task WriteTarEntry(TarOutputStream archiveStream, string name, Func<CancellationToken, Task<Stream>> contentGetter, CancellationToken ct) {
+			using var content = await contentGetter(ct);
+			var entry = TarEntry.CreateTarEntry(name);
+			entry.Size = content.Length;
+			archiveStream.PutNextEntry(entry);
+			await content.CopyToAsync(archiveStream);
+			archiveStream.CloseEntry();
 		}
 	}
 }

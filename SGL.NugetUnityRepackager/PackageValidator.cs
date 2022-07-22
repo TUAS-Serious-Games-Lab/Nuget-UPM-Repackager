@@ -23,9 +23,12 @@ namespace SGL.NugetUnityRepackager {
 				}
 			}
 			foreach (var path in package.Contents.Keys) {
-				if (path.EndsWith(".meta") && !package.Contents.ContainsKey(path.Substring(0, path.Length - 5))) {
-					problemCount++;
-					logger.LogWarning("{pkg}: Stray .meta file '{path}'.", package.Identifier.Id, path);
+				if (path.EndsWith(".meta")) {
+					var beforeMeta = path.Substring(0, path.Length - 5);
+					if (!package.Contents.ContainsKey(beforeMeta) && !package.Contents.Keys.Any(name => name.StartsWith(beforeMeta))) {
+						problemCount++;
+						logger.LogWarning("{pkg}: Stray .meta file '{path}'.", package.Identifier.Id, path);
+					}
 				}
 			}
 			return problemCount;

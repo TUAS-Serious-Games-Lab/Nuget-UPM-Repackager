@@ -57,13 +57,23 @@ namespace SGL.NugetUnityRepackager {
 			var result = new Dictionary<PackageIdentity, Package>();
 			foreach (var (inPkgIdent, inPkg) in input) {
 				var outIdent = new PackageIdentity(ConvertName(overrides, inPkgIdent.Id), inPkgIdent.Version);
-				var outPkg = new Package(outIdent, inPkg.Dependencies.Select(inDep => new PackageIdentity(ConvertName(overrides, inDep.Id), inDep.Version)).ToList(), inPkg.Metadata,
-					inPkg.Contents
-						.Where(kvp => overrides.FilterContents(inPkgIdent, kvp.Key))
-						.Prepend(await GenerateUpmManifestAsync(inPkg, primaryPackages.Contains(inPkgIdent)))
-						.Select(kvp => new KeyValuePair<string, Func<CancellationToken, Task<Stream>>>(overrides.MapPath(kvp.Key, inPkgIdent), kvp.Value))
-						.Concat(overrides.GetOverlays(inPkgIdent))
-						.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+				var contents = inPkg.Contents
+					.Where(kvp => overrides.FilterContents(inPkgIdent, kvp.Key))
+					.Prepend(await GenerateUpmManifestAsync(inPkg, primaryPackages.Contains(inPkgIdent)))
+					.Select(kvp => new KeyValuePair<string, Func<CancellationToken, Task<Stream>>>(overrides.MapPath(kvp.Key, inPkgIdent), kvp.Value))
+					.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+				foreach (var (metaName, metaContent) in MetaFileGenerator.GenerateMetaFileForFiles(contents.Keys.ToList())
+												.Concat(MetaFileGenerator.GenerateMetaFileForDirectories(contents.Keys.ToList()))) {
+					contents[metaName] = metaContent;
+				}
+				foreach (var (overlayName, overlayContent) in overrides.GetOverlays(inPkgIdent)) {
+					contents[overlayName] = overlayContent;
+				}
+				var outPkg = new Package(
+					outIdent,
+					inPkg.Dependencies.Select(inDep => new PackageIdentity(ConvertName(overrides, inDep.Id), inDep.Version)).ToList(),
+					inPkg.Metadata,
+					contents,
 					inPkg.NativeRuntimesContents
 						.Where(path => overrides.FilterContents(inPkgIdent, path))
 						.Select(path => overrides.MapPath(path, inPkgIdent))
