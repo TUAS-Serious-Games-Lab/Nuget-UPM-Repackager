@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace SGL.NugetUnityRepackager {
 	public static class MetaFileGenerator {
 
-		private static string GeneratePluginMetaContent(Guid id) => @"fileFormatVersion: 2" +
-$"guid: {id.ToString("N")}" +
-@"PluginImporter:
+		private static string GeneratePluginMetaContent(Guid id) => @"fileFormatVersion: 2
+" + $"guid: {id.ToString("N")}" + @"
+PluginImporter:
   externalObjects: {}
   serializedVersion: 2
   iconMap: {}
@@ -41,18 +41,18 @@ $"guid: {id.ToString("N")}" +
   assetBundleName: 
   assetBundleVariant: 
 ";
-		private static string GenerateDefaultMetaContent(Guid id) => @"fileFormatVersion: 2" +
-$"guid: {id.ToString("N")}" +
-@"folderAsset: yes
+		private static string GenerateDefaultMetaContent(Guid id) => @"fileFormatVersion: 2
+" + $"guid: {id.ToString("N")}" + @"
+folderAsset: yes
 DefaultImporter:
   externalObjects: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 
 ";
-		private static string GenerateTextScriptMetaContent(Guid id) => @"fileFormatVersion: 2" +
-$"guid: {id.ToString("N")}" +
-@"TextScriptImporter:
+		private static string GenerateTextScriptMetaContent(Guid id) => @"fileFormatVersion: 2
+" + $"guid: {id.ToString("N")}" + @"
+TextScriptImporter:
   externalObjects: {}
   userData: 
   assetBundleName: 
