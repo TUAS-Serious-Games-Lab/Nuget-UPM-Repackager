@@ -106,7 +106,7 @@ namespace SGL.NugetUnityRepackager {
 				Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
 				await Console.Out.WriteLineAsync("Gathering and resolving package dependencies:");
 				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
-				var packages = await treeResolver.GetAllDependenciesAsync(NuGetFramework.ParseFolder("netstandard2.1"), ct, opts.PrimaryPackages.ToArray());
+				var packages = await treeResolver.GetAllDependenciesAsync(opts.Framework, ct, opts.PrimaryPackages.ToArray());
 				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
 				await Console.Out.WriteLineAsync($"Resolved {packages.Count} packages.");
 				await Console.Out.WriteLineAsync();
