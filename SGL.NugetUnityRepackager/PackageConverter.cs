@@ -62,8 +62,8 @@ namespace SGL.NugetUnityRepackager {
 					.Prepend(await GenerateUpmManifestAsync(inPkg, primaryPackages.Contains(inPkgIdent)))
 					.Select(kvp => new KeyValuePair<string, Func<CancellationToken, Task<Stream>>>(overrides.MapPath(kvp.Key, inPkgIdent), kvp.Value))
 					.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-				foreach (var (metaName, metaContent) in MetaFileGenerator.GenerateMetaFileForFiles(contents.Keys.ToList())
-												.Concat(MetaFileGenerator.GenerateMetaFileForDirectories(contents.Keys.ToList()))) {
+				foreach (var (metaName, metaContent) in MetaFileGenerator.GenerateMetaFileForFiles(contents.Keys.ToList(), inPkgIdent.Id)
+												.Concat(MetaFileGenerator.GenerateMetaFileForDirectories(contents.Keys.ToList(), inPkgIdent.Id))) {
 					contents[metaName] = metaContent;
 				}
 				foreach (var (overlayName, overlayContent) in overrides.GetOverlays(inPkgIdent)) {

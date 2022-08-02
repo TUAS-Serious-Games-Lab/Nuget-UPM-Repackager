@@ -22,7 +22,7 @@ namespace SGL.NugetUnityRepackager {
 			foreach (var (name, contentGetter) in package.Contents) {
 				await WriteTarEntry(archiveStream, $"{package.Identifier.Id}/{name}", contentGetter, ct);
 			}
-			var (metaName, metaContent) = MetaFileGenerator.GenerateMetaFileForDirectory(package.Identifier.Id);
+			var (metaName, metaContent) = MetaFileGenerator.GenerateMetaFileForDirectory(package.Identifier.Id, package.Identifier.Id);
 			await WriteTarEntry(archiveStream, metaName, metaContent, ct);
 			archiveStream.Close();
 		}
