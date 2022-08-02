@@ -67,6 +67,15 @@ PackageManifestImporter:
   assetBundleName: 
   assetBundleVariant: 
 ";
+		private static string GenerateAssemblyDefinitionMetaContent(Guid id) => @"fileFormatVersion: 2
+" + $"guid: {id.ToString("N")}" + @"
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+";
+
 
 		private static KeyValuePair<string, Func<CancellationToken, Task<Stream>>> BuildGenerator(string name, Func<Guid, string> contentGenerator) {
 			return new KeyValuePair<string, Func<CancellationToken, Task<Stream>>>($"{name}.meta", async ct => {
@@ -85,6 +94,7 @@ PackageManifestImporter:
 		public static KeyValuePair<string, Func<CancellationToken, Task<Stream>>> GenerateMetaFileForFile(string fileName) {
 			return BuildGenerator(fileName, fileName switch {
 				var pkg when pkg.Equals("package.json", StringComparison.OrdinalIgnoreCase) => GeneratePackageManifestMetaContent,
+				var asmdef when asmdef.EndsWith(".asmdef", StringComparison.OrdinalIgnoreCase) => GenerateAssemblyDefinitionMetaContent,
 				var dll when dll.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) => GeneratePluginMetaContent,
 				var dllConfig when dllConfig.EndsWith(".dll.config", StringComparison.OrdinalIgnoreCase) => GeneratePluginMetaContent,
 				var json when json.EndsWith(".json", StringComparison.OrdinalIgnoreCase) => GenerateTextScriptMetaContent,
