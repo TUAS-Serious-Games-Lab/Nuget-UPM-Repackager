@@ -35,9 +35,9 @@ build-debug:
   artifacts:
     expire_in: 2 days
     paths:
-      - SGL.NugetUnityRepackager.*/bin/Debug/*/SGL.NugetUnityRepackager.*.xml
-      - SGL.NugetUnityRepackager.*/bin/Debug/*/SGL.NugetUnityRepackager.*.dll
-      - SGL.NugetUnityRepackager.*/bin/Debug/*/SGL.NugetUnityRepackager.*.exe
+      - SGL.NugetUnityRepackager/bin/Debug/*/SGL.NugetUnityRepackager.xml
+      - SGL.NugetUnityRepackager/bin/Debug/*/SGL.NugetUnityRepackager.dll
+      - SGL.NugetUnityRepackager/bin/Debug/*/SGL.NugetUnityRepackager.exe
 
 build-release:
   extends: .build
