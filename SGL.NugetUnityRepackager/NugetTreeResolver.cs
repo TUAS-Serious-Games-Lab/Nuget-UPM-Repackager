@@ -60,9 +60,11 @@ namespace SGL.NugetUnityRepackager {
 		}
 
 		public void Dispose() {
+			if (disposables == null) return;
 			foreach (var item in disposables) {
-				item.Dispose();
+				item?.Dispose();
 			}
+			disposables.Clear();
 		}
 
 		public async Task<IReadOnlyDictionary<PackageIdentity, Package>> GetAllDependenciesAsync(NuGetFramework framework, CancellationToken ct,
