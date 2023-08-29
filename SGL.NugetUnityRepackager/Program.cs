@@ -104,19 +104,19 @@ namespace SGL.NugetUnityRepackager {
 				var cancellationTokenSource = new CancellationTokenSource();
 				var ct = cancellationTokenSource.Token;
 				Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
-				await Console.Out.WriteLineAsync("Gathering and resolving package dependencies:");
-				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
-				var packages = await treeResolver.GetAllDependenciesAsync(opts.Framework, ct, opts.PrimaryPackages.ToArray());
-				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
-				await Console.Out.WriteLineAsync($"Resolved {packages.Count} packages.");
-				await Console.Out.WriteLineAsync();
-
 				var ignoredDependencies = (await File.ReadAllLinesAsync("ignored-dependencies.txt", ct))
 					.Select(line => line.Trim())
 					.Where(line => !string.IsNullOrEmpty(line))
 					.Where(line => !line.StartsWith('#'))
 					.Select(name => name.ToLowerInvariant())
 					.ToHashSet();
+				await Console.Out.WriteLineAsync("Gathering and resolving package dependencies:");
+				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+				var packages = await treeResolver.GetAllDependenciesAsync(opts.Framework, ct, ignoredDependencies, opts.PrimaryPackages.ToArray());
+				await Console.Out.WriteLineAsync(new string('-', Console.WindowWidth));
+				await Console.Out.WriteLineAsync($"Resolved {packages.Count} packages.");
+				await Console.Out.WriteLineAsync();
+
 				packages = packages
 					.Where(pkg => !ignoredDependencies.Contains(pkg.Key.Id.ToLowerInvariant()))
 					.Select(pkg => new Package(

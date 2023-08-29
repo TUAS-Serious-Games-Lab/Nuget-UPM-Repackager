@@ -66,7 +66,7 @@ namespace SGL.NugetUnityRepackager {
 		}
 
 		public async Task<IReadOnlyDictionary<PackageIdentity, Package>> GetAllDependenciesAsync(NuGetFramework framework, CancellationToken ct,
-				params PackageIdentity[] primaryPackageIdentifiers) {
+				ISet<string> ignoredDependencies, params PackageIdentity[] primaryPackageIdentifiers) {
 			var gatherLogger = loggerFactory.CreateLogger<Gatherer>();
 			var gatheredPackages = new Dictionary<PackageIdentity, SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
 			foreach (var packageIdentity in primaryPackageIdentifiers) {
@@ -85,7 +85,9 @@ namespace SGL.NugetUnityRepackager {
 				.Select(pkg => gatheredPackages[pkg]).ToList();
 			var resolvedVersions = resolvedPackages.ToDictionary(pkg => pkg.Id, pkg => new PackageIdentity(pkg.Id, pkg.Version), StringComparer.OrdinalIgnoreCase);
 
-			var loadTasks = resolvedPackages.Select(pkg => LoadPackage(pkg, framework, resolvedVersions, ct));
+			var loadTasks = resolvedPackages
+				.Where(pkg => !ignoredDependencies.Contains(pkg.Id.ToLowerInvariant()))
+				.Select(pkg => LoadPackage(pkg, framework, resolvedVersions, ct));
 			var loadedPackages = await Task.WhenAll(loadTasks);
 			return loadedPackages.ToDictionary(pkg => pkg.Ident, pkg => pkg.Pkg);
 		}
