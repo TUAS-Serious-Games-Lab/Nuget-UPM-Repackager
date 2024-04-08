@@ -6,8 +6,13 @@ using System.Threading.Tasks;
 
 namespace SGL.NugetUnityRepackager {
 	public class PackageManifest {
-		public string Name { get; init; }
-		public string Version { get; init; }
+		public PackageManifest(string name, string version) {
+			Name = name;
+			Version = version;
+		}
+
+		public string Name { get; }
+		public string Version { get; }
 		public string? Description { get; init; }
 		public string? DisplayName { get; init; }
 		public string? Unity { get; init; }
@@ -24,13 +29,23 @@ namespace SGL.NugetUnityRepackager {
 	}
 
 	public class PackageSample {
-		public string DisplayName { get; init; }
-		public string Description { get; init; }
-		public string Path { get; init; }
+		public PackageSample(string displayName, string description, string path) {
+			DisplayName = displayName;
+			Description = description;
+			Path = path;
+		}
+
+		public string DisplayName { get; }
+		public string Description { get; }
+		public string Path { get; }
 	}
 
 	public class PackageAuthor {
-		public string Name { get; init; }
+		public PackageAuthor(string name) {
+			Name = name;
+		}
+
+		public string Name { get; }
 		public string? Email { get; init; }
 		public string? Url { get; init; }
 	}

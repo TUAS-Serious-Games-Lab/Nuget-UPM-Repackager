@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace SGL.NugetUnityRepackager {
 	public class PackageConverter {
@@ -59,7 +58,7 @@ namespace SGL.NugetUnityRepackager {
 				var outIdent = new PackageIdentity(ConvertName(overrides, inPkgIdent.Id), inPkgIdent.Version);
 				var contents = inPkg.Contents
 					.Where(kvp => overrides.FilterContents(inPkgIdent, kvp.Key))
-					.Prepend(await GenerateUpmManifestAsync(inPkg, primaryPackages.Contains(inPkgIdent)))
+					.Prepend(GenerateUpmManifest(inPkg, primaryPackages.Contains(inPkgIdent)))
 					.Select(kvp => new KeyValuePair<string, Func<CancellationToken, Task<Stream>>>(overrides.MapPath(kvp.Key, inPkgIdent), kvp.Value))
 					.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 				foreach (var (metaName, metaContent) in MetaFileGenerator.GenerateMetaFileForFiles(contents.Keys.ToList(), inPkgIdent.Id)
@@ -83,7 +82,7 @@ namespace SGL.NugetUnityRepackager {
 			return result;
 		}
 
-		private async Task<KeyValuePair<string, Func<CancellationToken, Task<Stream>>>> GenerateUpmManifestAsync(Package inPkg, bool primaryPackage) {
+		private KeyValuePair<string, Func<CancellationToken, Task<Stream>>> GenerateUpmManifest(Package inPkg, bool primaryPackage) {
 			Func<CancellationToken, Task<Stream>> getter = async (CancellationToken ct) => {
 				JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web) {
 					WriteIndented = true,
@@ -91,22 +90,19 @@ namespace SGL.NugetUnityRepackager {
 				};
 				var stream = new MemoryStream();
 				var overrides = await this.overrides;
-				var manifest = new PackageManifest {
-					Name = ConvertName(overrides, inPkg.Identifier.Id),
-					Version = inPkg.Identifier.Version.ToString(),
-					DisplayName = String.IsNullOrEmpty(inPkg.Metadata.Title) ? null : inPkg.Metadata.Title,
-					Description = String.IsNullOrEmpty(inPkg.Metadata.Description) ? null : inPkg.Metadata.Description,
-					Keywords = String.IsNullOrEmpty(inPkg.Metadata.Tags) ? null : inPkg.Metadata.Tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries),
-					ChangelogUrl = String.IsNullOrEmpty(inPkg.Metadata.ReleaseNotes) ? null : inPkg.Metadata.ReleaseNotes,
+				var manifest = new PackageManifest(ConvertName(overrides, inPkg.Identifier.Id), inPkg.Identifier.Version.ToString()) {
+					DisplayName = string.IsNullOrEmpty(inPkg.Metadata.Title) ? null : inPkg.Metadata.Title,
+					Description = string.IsNullOrEmpty(inPkg.Metadata.Description) ? null : inPkg.Metadata.Description,
+					Keywords = string.IsNullOrEmpty(inPkg.Metadata.Tags) ? null : inPkg.Metadata.Tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries),
+					ChangelogUrl = string.IsNullOrEmpty(inPkg.Metadata.ReleaseNotes) ? null : inPkg.Metadata.ReleaseNotes,
 					Samples = null,
-					LicenseUrl = String.IsNullOrEmpty(inPkg.Metadata.LicenseUrl) ? null : inPkg.Metadata.LicenseUrl,
+					LicenseUrl = string.IsNullOrEmpty(inPkg.Metadata.LicenseUrl) ? null : inPkg.Metadata.LicenseUrl,
 					License = inPkg.Metadata.LicenseMetadata != null ? $"{inPkg.Metadata.LicenseMetadata.License} {inPkg.Metadata.LicenseMetadata.Version}" : null,
 					DocumentationUrl = inPkg.Metadata.RepositoryMetadata == null || string.IsNullOrEmpty(inPkg.Metadata.RepositoryMetadata.Url) ?
-						(String.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl) :
+						(string.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl) :
 						inPkg.Metadata.RepositoryMetadata.Url,
-					Author = String.IsNullOrEmpty(inPkg.Metadata.Authors) ? null : new PackageAuthor {
-						Name = inPkg.Metadata.Authors,
-						Url = String.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl,
+					Author = string.IsNullOrEmpty(inPkg.Metadata.Authors) ? null : new PackageAuthor(inPkg.Metadata.Authors) {
+						Url = string.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl,
 						Email = null
 					},
 					Dependencies = inPkg.Dependencies.ToDictionary(inPkg => ConvertName(overrides, inPkg.Id), inPkg => inPkg.Version.ToString()),

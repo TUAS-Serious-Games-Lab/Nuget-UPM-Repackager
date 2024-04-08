@@ -25,7 +25,6 @@ namespace SGL.NugetUnityRepackager {
 		private PackageSourceMapping packageSourcesMapping;
 		private PackageResolver resolver;
 		private FrameworkReducer frameworkReducer;
-		private PackagePathResolver packagePathResolver;
 		private PackageDownloadContext packageDownloadContext;
 		private string globalPackagesFolder;
 		private List<IDisposable> disposables = new List<IDisposable>();
@@ -137,25 +136,25 @@ namespace SGL.NugetUnityRepackager {
 			return allFiles.Where(name => name.StartsWith("runtimes", StringComparison.OrdinalIgnoreCase));
 		}
 
-		private PackageMetadata GetMetadata(NuspecReader nuspecReader, CancellationToken ct) => new PackageMetadata {
-			Title = nuspecReader.GetTitle(),
-			Authors = nuspecReader.GetAuthors(),
-			Owners = nuspecReader.GetOwners(),
-			Copyright = nuspecReader.GetCopyright(),
-			Description = nuspecReader.GetDescription(),
-			Summary = nuspecReader.GetSummary(),
-			Icon = nuspecReader.GetIcon(),
-			IconUrl = nuspecReader.GetIconUrl(),
-			Tags = nuspecReader.GetTags(),
-			LicenseUrl = nuspecReader.GetLicenseUrl(),
-			LicenseMetadata = nuspecReader.GetLicenseMetadata(),
-			ProjectUrl = nuspecReader.GetProjectUrl(),
-			Readme = nuspecReader.GetReadme(),
-			ReleaseNotes = nuspecReader.GetReleaseNotes(),
-			RequireLicenseAcceptance = nuspecReader.GetRequireLicenseAcceptance(),
-			RepositoryMetadata = nuspecReader.GetRepositoryMetadata(),
-			MetadataDictionary = nuspecReader.GetMetadata().ToDictionary(md => md.Key, md => md.Value)
-		};
+		private PackageMetadata GetMetadata(NuspecReader nuspecReader, CancellationToken ct) => new PackageMetadata(
+			title: nuspecReader.GetTitle(),
+			authors: nuspecReader.GetAuthors(),
+			owners: nuspecReader.GetOwners(),
+			copyright: nuspecReader.GetCopyright(),
+			description: nuspecReader.GetDescription(),
+			summary: nuspecReader.GetSummary(),
+			icon: nuspecReader.GetIcon(),
+			iconUrl: nuspecReader.GetIconUrl(),
+			tags: nuspecReader.GetTags(),
+			licenseUrl: nuspecReader.GetLicenseUrl(),
+			licenseMetadata: nuspecReader.GetLicenseMetadata(),
+			projectUrl: nuspecReader.GetProjectUrl(),
+			readme: nuspecReader.GetReadme(),
+			releaseNotes: nuspecReader.GetReleaseNotes(),
+			requireLicenseAcceptance: nuspecReader.GetRequireLicenseAcceptance(),
+			repositoryMetadata: nuspecReader.GetRepositoryMetadata(),
+			metadataDictionary: nuspecReader.GetMetadata().ToDictionary(md => md.Key, md => md.Value)
+		);
 
 		private Func<CancellationToken, Task<Stream>> GetItemReader(string item, PackageReaderBase pkgReader) => (CancellationToken ct) => pkgReader.GetStreamAsync(item, ct);
 
