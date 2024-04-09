@@ -28,7 +28,7 @@ NugetUnityRepackager -d . -f netstandard2.0 -o output -u 2021.3 Some.Example.Pac
 
 As a more real-life example: Convert a client package and a few extension packages, together with all of their combined dependencies into corresponding UPM packages under 
 ```
-NugetUnityRepackager -o upm-pkg -f netstandard2.1 -u 2022.1 SGL.Community.Client@${SGL_COMMUNITY_VERSION} SGL.Community.Client.LocalData.Sqlite@${SGL_COMMUNITY_VERSION} SGL.Community.Client.QrCodes@${SGL_COMMUNITY_VERSION} Grpc.Net.Client.Web@2.56.0
+NugetUnityRepackager -o upm-pkg -f netstandard2.1 -u 2022.1 SGL.Community.Client@0.1.8 SGL.Community.Client.LocalData.Sqlite@0.1.8 SGL.Community.Client.QrCodes@0.1.8 Grpc.Net.Client.Web@2.56.0
 ```
 
 ## Operation
