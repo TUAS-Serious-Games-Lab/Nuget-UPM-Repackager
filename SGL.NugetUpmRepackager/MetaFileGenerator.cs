@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	public static class MetaFileGenerator {
 
 		private static string GeneratePluginMetaContent(Guid id) => @"fileFormatVersion: 2

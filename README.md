@@ -1,4 +1,4 @@
-# NugetUnityRepackager
+# NugetUpmRepackager
 
 A stand-alone CLI tool to repackage a dependency DAGs (dependency trees of multiple root packages, potentially with shared dependencies) of NuGet packages into UPM packages.
 
@@ -23,12 +23,12 @@ A stand-alone CLI tool to repackage a dependency DAGs (dependency trees of multi
 
 Convert version `1.2.3` of `Some.Example.Package` and all of its dependencies, and store the converted packages in output/.:
 ```
-NugetUnityRepackager -d . -f netstandard2.0 -o output -u 2021.3 Some.Example.Package@1.2.3
+NugetUpmRepackager -d . -f netstandard2.0 -o output -u 2021.3 Some.Example.Package@1.2.3
 ```
 
 As a more real-life example: Convert a client package and a few extension packages, together with all of their combined dependencies into corresponding UPM packages under 
 ```
-NugetUnityRepackager -o upm-pkg -f netstandard2.1 -u 2022.1 SGL.Community.Client@0.1.8 SGL.Community.Client.LocalData.Sqlite@0.1.8 SGL.Community.Client.QrCodes@0.1.8 Grpc.Net.Client.Web@2.56.0
+NugetUpmRepackager -o upm-pkg -f netstandard2.1 -u 2022.1 SGL.Community.Client@0.1.8 SGL.Community.Client.LocalData.Sqlite@0.1.8 SGL.Community.Client.QrCodes@0.1.8 Grpc.Net.Client.Web@2.56.0
 ```
 
 ## Operation

@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGL.NugetUnityRepackager {
-	public class UnityPackageWriter {
+namespace SGL.NugetUpmRepackager {
+	public class UpmPackageWriter {
 		private string directory;
 
-		public UnityPackageWriter(string directory) {
+		public UpmPackageWriter(string directory) {
 			this.directory = directory;
 		}
 

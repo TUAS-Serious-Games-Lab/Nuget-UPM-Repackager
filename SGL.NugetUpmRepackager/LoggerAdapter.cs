@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	public static class ILoggerNugetLoggerExtensions {
 		public static NuGet.Common.ILogger GetNuGetLogger<T>(this ILogger<T> logger) {
 			return new LoggerAdapter<T>(logger);

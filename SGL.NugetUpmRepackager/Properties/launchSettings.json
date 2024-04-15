@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "SGL.NugetUnityRepackager": {
+    "SGL.NugetUpmRepackager": {
       "commandName": "Project",
       //"commandLineArgs": "--dependency-usage -vvv -f netstandard2.1 SGL.Community.Client@0.0.4 SGL.Analytics.Client@0.0.1"
       "commandLineArgs": "--dependency-usage -vvv -f netstandard2.1 SGL.Community.Client@0.0.4 SGL.Community.Client.LocalData.Sqlite@0.0.4 SGL.Analytics.Client@0.0.1 SQLitePCLRaw.bundle_e_sqlite3@2.1.0"

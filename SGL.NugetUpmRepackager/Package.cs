@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	public class Package {
 		internal Package(PackageIdentity identifier, IReadOnlyList<PackageIdentity> dependencies, PackageMetadata metadata,
 				IReadOnlyDictionary<string, Func<CancellationToken, Task<Stream>>> contents, List<string> nativeRuntimesContents) {

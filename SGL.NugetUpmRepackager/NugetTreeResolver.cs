@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	public class NugetTreeResolver : IDisposable {
 		private readonly ILoggerFactory loggerFactory;
 		private readonly string mainDirectory;
@@ -156,7 +156,7 @@ namespace SGL.NugetUnityRepackager {
 			metadataDictionary: nuspecReader.GetMetadata().ToDictionary(md => md.Key, md => md.Value)
 		);
 
-		private Func<CancellationToken, Task<Stream>> GetItemReader(string item, PackageReaderBase pkgReader) => (CancellationToken ct) => pkgReader.GetStreamAsync(item, ct);
+		private Func<CancellationToken, Task<Stream>> GetItemReader(string item, PackageReaderBase pkgReader) => (ct) => pkgReader.GetStreamAsync(item, ct);
 
 		public class Gatherer { }
 		public class Resolver { }

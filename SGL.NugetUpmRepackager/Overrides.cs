@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using NuGet.Packaging.Core;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	public class Overrides {
 		private ILogger<Overrides> logger;
 		private OverrideSettings settings;

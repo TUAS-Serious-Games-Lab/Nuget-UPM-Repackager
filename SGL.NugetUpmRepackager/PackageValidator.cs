@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	public class PackageValidator {
 		private ILogger<PackageValidator> logger;
 		private static ISet<string> nativeSuffixes = new HashSet<string>(new[] { ".dll", ".so", ".a", ".dylib" }, StringComparer.OrdinalIgnoreCase);

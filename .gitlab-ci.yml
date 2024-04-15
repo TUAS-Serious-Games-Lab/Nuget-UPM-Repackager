@@ -17,7 +17,7 @@ cache:
 
 before_script:
   - 'dotnet nuget update source SGL --username ${SGL_PKG_USER} --password ${SGL_PKG_TOKEN} --store-password-in-clear-text'
-  - 'dotnet restore --packages $NUGET_PACKAGES_DIRECTORY NugetUnityRepackager.sln'
+  - 'dotnet restore --packages $NUGET_PACKAGES_DIRECTORY NugetUpmRepackager.sln'
 
 after_script:
   - 'dotnet nuget update source SGL --username dummy --password dummy --store-password-in-clear-text'
@@ -26,7 +26,7 @@ after_script:
   needs: []
   stage: build
   script:
-    - 'dotnet build --configuration ${CONFIG} --no-restore NugetUnityRepackager.sln'
+    - 'dotnet build --configuration ${CONFIG} --no-restore NugetUpmRepackager.sln'
 
 build-debug:
   extends: .build
@@ -35,9 +35,9 @@ build-debug:
   artifacts:
     expire_in: 2 days
     paths:
-      - SGL.NugetUnityRepackager/bin/Debug/*/SGL.NugetUnityRepackager.xml
-      - SGL.NugetUnityRepackager/bin/Debug/*/SGL.NugetUnityRepackager.dll
-      - SGL.NugetUnityRepackager/bin/Debug/*/SGL.NugetUnityRepackager.exe
+      - SGL.NugetUpmRepackager/bin/Debug/*/SGL.NugetUpmRepackager.xml
+      - SGL.NugetUpmRepackager/bin/Debug/*/SGL.NugetUpmRepackager.dll
+      - SGL.NugetUpmRepackager/bin/Debug/*/SGL.NugetUpmRepackager.exe
 
 build-release:
   extends: .build
@@ -49,7 +49,7 @@ build-release:
 #  needs: []
 #  script:
 #    - 'rm -f */TestResults/*/coverage.cobertura.xml'
-#    - 'dotnet test --no-restore --configuration Debug --collect:"XPlat Code Coverage" --test-adapter-path:. --logger:"junit;LogFilePath=../TestResults/{assembly}.xml;MethodFormat=Class;FailureBodyFormat=Verbose" NugetUnityRepackager.sln'
+#    - 'dotnet test --no-restore --configuration Debug --collect:"XPlat Code Coverage" --test-adapter-path:. --logger:"junit;LogFilePath=../TestResults/{assembly}.xml;MethodFormat=Class;FailureBodyFormat=Verbose" NugetUpmRepackager.sln'
 #  artifacts:
 #    expire_in: 14 days
 #    when: always
@@ -72,7 +72,7 @@ build-release:
 #  script:
 #    - docfx DocFx/docfx.json
 #  artifacts:
-#    name: "SGL.NugetUnityRepackager.Docs"
+#    name: "SGL.NugetUpmRepackager.Docs"
 #    expire_in: 14 days
 #    paths:
 #      - docfx_output

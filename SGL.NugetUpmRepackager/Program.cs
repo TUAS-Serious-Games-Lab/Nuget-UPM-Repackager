@@ -10,7 +10,7 @@ using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using System.Reflection;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	internal class Program {
 
 		class Options {
@@ -57,7 +57,7 @@ namespace SGL.NugetUnityRepackager {
 		}
 
 		class ParsedFramework : NuGetFramework {
-			public ParsedFramework(string argText) : base(NuGetFramework.Parse(argText)) { }
+			public ParsedFramework(string argText) : base(Parse(argText)) { }
 			public override string ToString() => GetShortFolderName();
 		}
 
@@ -103,7 +103,7 @@ namespace SGL.NugetUnityRepackager {
 				using var treeResolver = new NugetTreeResolver(loggerFactory, Path.GetFullPath(opts.MainDirectory));
 				var cancellationTokenSource = new CancellationTokenSource();
 				var ct = cancellationTokenSource.Token;
-				Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs e) => { cancellationTokenSource.Cancel(); };
+				Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 				var ignoredDependencies = (await File.ReadAllLinesAsync("ignored-dependencies.txt", ct))
 					.Select(line => line.Trim())
 					.Where(line => !string.IsNullOrEmpty(line))
@@ -157,7 +157,7 @@ namespace SGL.NugetUnityRepackager {
 				await Console.Out.WriteLineAsync("Packing UPM packages:\n");
 
 				Directory.CreateDirectory(opts.OutputDirectory);
-				var upmWriter = new UnityPackageWriter(opts.OutputDirectory);
+				var upmWriter = new UpmPackageWriter(opts.OutputDirectory);
 
 				foreach (var (identity, package) in convertedPackages) {
 					await Console.Out.WriteAsync($"{identity}");
@@ -210,7 +210,7 @@ namespace SGL.NugetUnityRepackager {
 			await Console.Out.WriteLineAsync(HelpText.AutoBuild(result, h => {
 				h.AddNewLineBetweenHelpSections = true;
 				h.AdditionalNewLineAfterOption = false;
-				h.Heading = $"SGL NugetUnityRepackager {Assembly.GetExecutingAssembly().GetName().Version}";
+				h.Heading = $"SGL Nuget UPM Repackager {Assembly.GetExecutingAssembly().GetName().Version}";
 				h.MaximumDisplayWidth = 170;
 				return h;
 			}));

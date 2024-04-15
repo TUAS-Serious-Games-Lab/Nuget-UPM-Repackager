@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	public class OverrideSettings {
 		public Dictionary<string, string> NamePrefixMapping { get; set; } = new Dictionary<string, string>();
 		public List<PathMappingEntry> PathMapping { get; set; } = new List<PathMappingEntry>();

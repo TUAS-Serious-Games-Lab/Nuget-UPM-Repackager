@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	public class PackageConverter {
 		private readonly ILoggerFactory loggerFactory;
 		private string? unity;
@@ -83,7 +83,7 @@ namespace SGL.NugetUnityRepackager {
 		}
 
 		private KeyValuePair<string, Func<CancellationToken, Task<Stream>>> GenerateUpmManifest(Package inPkg, bool primaryPackage) {
-			Func<CancellationToken, Task<Stream>> getter = async (CancellationToken ct) => {
+			Func<CancellationToken, Task<Stream>> getter = async (ct) => {
 				JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web) {
 					WriteIndented = true,
 					DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
@@ -99,7 +99,7 @@ namespace SGL.NugetUnityRepackager {
 					LicenseUrl = string.IsNullOrEmpty(inPkg.Metadata.LicenseUrl) ? null : inPkg.Metadata.LicenseUrl,
 					License = inPkg.Metadata.LicenseMetadata != null ? $"{inPkg.Metadata.LicenseMetadata.License} {inPkg.Metadata.LicenseMetadata.Version}" : null,
 					DocumentationUrl = inPkg.Metadata.RepositoryMetadata == null || string.IsNullOrEmpty(inPkg.Metadata.RepositoryMetadata.Url) ?
-						(string.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl) :
+						string.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl :
 						inPkg.Metadata.RepositoryMetadata.Url,
 					Author = string.IsNullOrEmpty(inPkg.Metadata.Authors) ? null : new PackageAuthor(inPkg.Metadata.Authors) {
 						Url = string.IsNullOrEmpty(inPkg.Metadata.ProjectUrl) ? null : inPkg.Metadata.ProjectUrl,

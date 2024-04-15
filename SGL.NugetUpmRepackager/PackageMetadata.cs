@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SGL.NugetUnityRepackager {
+namespace SGL.NugetUpmRepackager {
 	public class PackageMetadata {
 		public PackageMetadata(string title, string authors, string tags, string owners, string description, string releaseNotes,
 			string summary, string projectUrl, string icon, string iconUrl, string copyright, string readme, string licenseUrl,
