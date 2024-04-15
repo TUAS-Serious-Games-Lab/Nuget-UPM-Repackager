@@ -1,4 +1,4 @@
-# NugetUpmRepackager
+# Nuget UPM Repackager
 
 A stand-alone CLI tool to repackage a dependency DAGs (dependency trees of multiple root packages, potentially with shared dependencies) of NuGet packages into UPM packages.
 
