@@ -43,7 +43,7 @@
 .docker_images_mapping:
   variables:
     Repackager_PACKAGE_IMAGE_DIR: "SGL.NugetUpmRepackager"
-    Repackager_PACKAGE_IMAGE: "${CI_REGISTRY_IMAGE}/nuget-upm-repackager"
+    Repackager_PACKAGE_IMAGE: "${CI_REGISTRY_IMAGE}"
     Repackager_PACKAGE_IMAGE_CONTEXT: "${CI_PROJECT_DIR}"
 
 .pkg-docker:
